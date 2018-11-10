@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdditiveMultiplicativeFilte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegmentRasterization", "SegmentRasterization\SegmentRasterization.csproj", "{D0CC92D3-136D-44CC-B220-820D0804E9D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineTransformations", "LineTransformations\LineTransformations.csproj", "{2E460E07-2E68-4DDF-8364-7A328A15F11F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{D0CC92D3-136D-44CC-B220-820D0804E9D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0CC92D3-136D-44CC-B220-820D0804E9D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0CC92D3-136D-44CC-B220-820D0804E9D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E460E07-2E68-4DDF-8364-7A328A15F11F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E460E07-2E68-4DDF-8364-7A328A15F11F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E460E07-2E68-4DDF-8364-7A328A15F11F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E460E07-2E68-4DDF-8364-7A328A15F11F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
