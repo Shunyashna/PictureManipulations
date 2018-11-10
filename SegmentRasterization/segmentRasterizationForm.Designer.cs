@@ -33,6 +33,7 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.stopButton = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.button1 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
@@ -55,7 +56,7 @@
             // 
             // stopButton
             // 
-            this.stopButton.Location = new System.Drawing.Point(1232, 333);
+            this.stopButton.Location = new System.Drawing.Point(1232, 293);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(103, 47);
             this.stopButton.TabIndex = 1;
@@ -67,11 +68,22 @@
             // 
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(1232, 218);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(103, 48);
+            this.button1.TabIndex = 2;
+            this.button1.Text = "Continue";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // segmentRasterizationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1370, 749);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.stopButton);
             this.Controls.Add(this.panel1);
             this.Name = "segmentRasterizationForm";
@@ -89,6 +101,7 @@
         private System.Windows.Forms.Button stopButton;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Button button1;
     }
 }
 

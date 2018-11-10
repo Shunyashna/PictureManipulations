@@ -107,31 +107,6 @@ namespace PictureZoom
                 }
             }
 
-            //////// Declare an array to hold the bytes of the bitmap.
-            //////int bytes1 = Math.Abs(initData.Stride) * source.Height;
-            //////byte[] rgbValues1 = new byte[bytes1];
-            //////int bytes2 = Math.Abs(destData.Stride) * destination.Height;
-            //////byte[] rgbValues2 = new byte[bytes2];
-
-            //////// Copy the RGB values into the array.
-            //////System.Runtime.InteropServices.Marshal.Copy(ptr1, rgbValues1, 0, bytes1);
-
-            //////for (int i = 0; i < destData.Stride; i += 4)
-            //////{
-            //////    for (int j = 0; j < destination.Height; j++)
-            //////    {
-            //////        int newX = (int)(i / xZoom);
-            //////        int newY = (int)(j / yZoom);
-            //////        if (newX % 4 != 0) newX -= newX % 4;
-
-            //////        var pixel = LockBitsOperations.GetPixel(rgbValues1, initData.Stride, newX, newY);
-            //////        LockBitsOperations.SetPixel(rgbValues2, pixel, destData.Stride, i, j);
-            //////    }
-            //////}
-
-            //////// Copy the RGB values back to the bitmap
-            //////System.Runtime.InteropServices.Marshal.Copy(rgbValues2, 0, destData.Scan0, bytes2);
-
             source.UnlockBits(initData);
             destination.UnlockBits(destData);
         }
