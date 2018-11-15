@@ -59,8 +59,8 @@ namespace LineTransformations
             int centerX = bitmap.Width / 2;
             int centerY = bitmap.Height / 2;
 
-            var coords = LineTransformation(151, centerX, centerY, centerX, centerY, ref currentAngle1, angleSpeed1);
-            LineTransformation(41, oldCenterX, oldCenterY, coords.x, coords.y, ref currentAngle2, -angleSpeed2);
+            var coords = BigLineTransformation(151, centerX, centerY, centerX, centerY, ref currentAngle1, angleSpeed1);
+            LittleLineTransformation(41, oldCenterX, oldCenterY, coords.x, coords.y, ref currentAngle2, -angleSpeed2);
 
             oldCenterX = coords.x;
             oldCenterY = coords.y;
@@ -81,19 +81,45 @@ namespace LineTransformations
             }
         }
 
-        private (int x, int y) LineTransformation(int radius, int oldX0, int oldY0, int newX0, int newY0, ref double currentAngle, double angleSpeed)
+        private (int x, int y) BigLineTransformation(int radius, int oldX0, int oldY0, int newX0, int newY0, ref double currentAngle, double angleSpeed)
         {
+
+            /*int oldX = CalculateNewX(oldX0 + radius, oldY0, Math.Cos(currentAngle), Math.Sin(currentAngle), oldX0, oldY0);
+            int oldY = CalculateNewY(oldX0 + radius, oldY0, Math.Cos(currentAngle), Math.Sin(currentAngle), oldX0, oldY0);
+            DrawSegment(oldX0, oldX, oldY0, oldY, BackColor);*/
             int oldX = CalculateNewX(oldX0 + radius, oldY0, Math.Cos(currentAngle), Math.Sin(currentAngle), oldX0, oldY0);
             int oldY = CalculateNewY(oldX0 + radius, oldY0, Math.Cos(currentAngle), Math.Sin(currentAngle), oldX0, oldY0);
             DrawSegment(oldX0, oldX, oldY0, oldY, BackColor);
 
             currentAngle = CalculateNewAngle(currentAngle, angleSpeed, timer1.Interval);
 
-            int newX = CalculateNewX(newX0 + radius, newY0, Math.Cos(currentAngle), Math.Sin(currentAngle), newX0, newY0);
-            int newY = CalculateNewY(newX0 + radius, newY0, Math.Cos(currentAngle), Math.Sin(currentAngle), newX0, newY0);
-            DrawSegment(newX0, newX, newY0, newY, Color.Black);
+            int newX2 = CalculateNewX(newX0 + radius, newY0, Math.Cos(currentAngle), Math.Sin(currentAngle), newX0, newY0);
+            int newY2 = CalculateNewY(newX0 + radius, newY0, Math.Cos(currentAngle), Math.Sin(currentAngle), newX0, newY0);
+            DrawSegment(newX0, newX2, newY0, newY2, Color.Black);
 
-            return (newX, newY);
+            return (newX2, newY2);
+        }
+
+        private void LittleLineTransformation(int length, int oldX0, int oldY0, int newX0, int newY0, ref double currentAngle, double angleSpeed)
+        {
+            if (oldX0 != 0 && oldY0 != 0)
+            {
+                int oldX2 = CalculateNewX(oldX0 + length, oldY0, Math.Cos(currentAngle), Math.Sin(currentAngle), oldX0, oldY0);
+                int oldY2 = CalculateNewY(oldX0 + length, oldY0, Math.Cos(currentAngle), Math.Sin(currentAngle), oldX0, oldY0);
+
+                int oldX1 = CalculateNewX(oldX0 - length, oldY0, Math.Cos(currentAngle), Math.Sin(currentAngle), oldX0, oldY0);
+                int oldY1 = CalculateNewY(oldX0 - length, oldY0, Math.Cos(currentAngle), Math.Sin(currentAngle), oldX0, oldY0);
+                DrawSegment(oldX1, oldX2, oldY1, oldY2, BackColor);
+            }
+
+            currentAngle = CalculateNewAngle(currentAngle, angleSpeed, timer1.Interval);
+
+            int newX2 = CalculateNewX(newX0 + length, newY0, Math.Cos(currentAngle), Math.Sin(currentAngle), newX0, newY0);
+            int newY2 = CalculateNewY(newX0 + length, newY0, Math.Cos(currentAngle), Math.Sin(currentAngle), newX0, newY0);
+
+            int newX1 = CalculateNewX(newX0 - length, newY0, Math.Cos(currentAngle), Math.Sin(currentAngle), newX0, newY0);
+            int newY1 = CalculateNewY(newX0 - length, newY0, Math.Cos(currentAngle), Math.Sin(currentAngle), newX0, newY0);
+            DrawSegment(newX1, newX2, newY1, newY2, Color.Black);
         }
 
         private int CalculateNewX(double x, int y, double cos, double sin, int x0, int y0)
