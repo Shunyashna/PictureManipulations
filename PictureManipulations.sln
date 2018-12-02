@@ -25,6 +25,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Raster Graphics", "Raster G
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2D Vector Graphics", "2D Vector Graphics", "{59942ECE-625E-4C28-B35F-2B35121B6DDE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3D Graphics", "3D Graphics", "{B7CB55F3-A3E8-4D37-8A73-C5F37AAE9199}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CubeTransformations", "CubeTransformations\CubeTransformations.csproj", "{EF7903F6-76D6-483F-B5A5-038A3DEA0AD5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +71,10 @@ Global
 		{221F040E-D75D-40A7-8089-9A895BA61753}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{221F040E-D75D-40A7-8089-9A895BA61753}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{221F040E-D75D-40A7-8089-9A895BA61753}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF7903F6-76D6-483F-B5A5-038A3DEA0AD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF7903F6-76D6-483F-B5A5-038A3DEA0AD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF7903F6-76D6-483F-B5A5-038A3DEA0AD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF7903F6-76D6-483F-B5A5-038A3DEA0AD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,6 +88,7 @@ Global
 		{D0CC92D3-136D-44CC-B220-820D0804E9D9} = {59942ECE-625E-4C28-B35F-2B35121B6DDE}
 		{2E460E07-2E68-4DDF-8364-7A328A15F11F} = {59942ECE-625E-4C28-B35F-2B35121B6DDE}
 		{221F040E-D75D-40A7-8089-9A895BA61753} = {59942ECE-625E-4C28-B35F-2B35121B6DDE}
+		{EF7903F6-76D6-483F-B5A5-038A3DEA0AD5} = {B7CB55F3-A3E8-4D37-8A73-C5F37AAE9199}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {87BA9C47-7F49-4E4C-A1FB-DF0DD871BAA2}
