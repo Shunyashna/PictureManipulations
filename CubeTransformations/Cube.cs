@@ -57,13 +57,12 @@ namespace CubeTransformations
             return new Rectangle(0, 0, (int)Math.Round(right - left), (int)Math.Round(bottom - top));
         }
 
-        public Bitmap drawCube(Point drawOrigin)
+        public Bitmap drawCube(Point drawOrigin, ProectionType type)
         {
             PointF[] point3D = new PointF[24]; //Will be actual 2D drawing points
-            Point tmpOrigin = new Point(0, 0);
 
             // Коэффициент масштабирования задается с помощью ширины монитора, чтобы сохранить искажение куба
-            double zoom = (double)Screen.PrimaryScreen.Bounds.Width / 1.5;
+            double zoom = Screen.PrimaryScreen.Bounds.Width / 1.5;
             
             Point3D[] cubePoints = FillCubeVertices(width, height, depth);
 
@@ -79,7 +78,23 @@ namespace CubeTransformations
             cubePoints = Math3D.RotateZ(cubePoints, ZRotation);
             cubePoints = Math3D.Translate(cubePoints, new Point3D(0, 0, 0), cubeOrigin);
 
-            //Convert 3D Points to 2D
+            if (type == ProectionType.Perspective)
+            {
+                Convert3DPointsTo2D(cubePoints, point3D, drawOrigin, zoom);
+            }
+            else
+            {
+                Convert3DTo2DPoints(cubePoints, point3D, drawOrigin, zoom);
+            }
+            
+
+            var tmpBmp = draw2DCube(point3D, drawOrigin);
+
+            return tmpBmp;
+        }
+
+        private void Convert3DPointsTo2D(Point3D[] cubePoints, PointF[] point3D, Point drawOrigin, double zoom)
+        {
             Point3D vec;
             for (int i = 0; i < point3D.Length; i++)
             {
@@ -91,14 +106,33 @@ namespace CubeTransformations
                 }
                 else
                 {
-                    tmpOrigin.X = (int)((cubeOrigin.X - camera1.Position.X) / (cubeOrigin.Z - camera1.Position.Z) * zoom) + drawOrigin.X;
-                    tmpOrigin.Y = (int)(-(cubeOrigin.Y - camera1.Position.Y) / (cubeOrigin.Z - camera1.Position.Z) * zoom) + drawOrigin.Y;
-
                     point3D[i].X = (int)(float)((vec.X - camera1.Position.X) / (vec.Z - camera1.Position.Z) * zoom + drawOrigin.X);
                     point3D[i].Y = (int)(float)(-(vec.Y - camera1.Position.Y) / (vec.Z - camera1.Position.Z) * zoom + drawOrigin.Y);
                 }
+            }
         }
 
+        private void Convert3DTo2DPoints(Point3D[] cubePoints, PointF[] point3D, Point drawOrigin, double zoom)
+        {
+            Point3D vec;
+            for(int i = 0; i < point3D.Length; i++)
+            {
+                vec = cubePoints[i];
+                if (vec.Z - 10>= 0)
+                {
+                    point3D[i].X = (int)(float)((vec.X) + drawOrigin.X / 1.5);
+                    point3D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
+                }
+                else
+                {
+                    point3D[i].X = (int)(float)((vec.X) + drawOrigin.X / 1.5);
+                    point3D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
+                }
+            }
+        }
+
+        private static Bitmap draw2DCube(PointF[] point3D, Point drawOrigin)
+        {
             //Now to plot out the points
             Rectangle bounds = getBounds(point3D);
             bounds.Width += drawOrigin.X;
@@ -144,7 +178,6 @@ namespace CubeTransformations
             g.DrawLine(Pens.Black, point3D[23], point3D[20]);
 
             g.Dispose(); //Clean-up
-
             return tmpBmp;
         }
 

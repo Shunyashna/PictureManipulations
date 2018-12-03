@@ -22,6 +22,8 @@ namespace CubeTransformations
         double speedY = 0;
         double speedZ = 0;
 
+        ProectionType type = ProectionType.Parallel;
+
         //Cube is positioned based on center
         Point Origin { get; set; }
         public Form1()
@@ -35,7 +37,7 @@ namespace CubeTransformations
             cube.YRotation = rotateY;
             cube.ZRotation = rotateZ;
             
-            pictureBox1.Image = cube.drawCube(Origin);
+            pictureBox1.Image = cube.drawCube(Origin, type);
         }
 
         private void startButton_Click(object sender, EventArgs e)
@@ -78,6 +80,18 @@ namespace CubeTransformations
         {
             double a = speed * timer1.Interval;
             return previousRotation += a;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            resetButton_Click(sender, e);
+            type = ProectionType.Parallel;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            resetButton_Click(sender, e);
+            type = ProectionType.Perspective;
         }
     }
 }
