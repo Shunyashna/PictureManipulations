@@ -1,6 +1,8 @@
-﻿using System;
+﻿using PictureManipulationsLibrary;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,24 +12,23 @@ namespace CubeTransformations
 {
     public class Cube
     {
-        public int width = 0;
-        public int height = 0;
-        public int depth = 0;
+        public int Width { get; }
+        public int Height { get; }
+        public int Length { get; }
 
         public double XRotation { get; set; }
         public double YRotation { get; set; }
         public double ZRotation { get; set; }
 
-        Camera camera1 = new Camera();
+        
         Point3D cubeOrigin;
 
         public Cube(int side)
         {
-            width = side;
-            height = side;
-            depth = side;
-            cubeOrigin = new Point3D(width / 2, height / 2, depth / 2);
-            //cubeOrigin = new Point3D(0, 0, 0);
+            Width = side;
+            Height = side;
+            Length = side;
+            cubeOrigin = new Point3D(Width / 2, Height / 2, Length / 2);
 
             XRotation = 0.0;
             YRotation = 0.0;
@@ -59,125 +60,118 @@ namespace CubeTransformations
 
         public Bitmap drawCube(Point drawOrigin, ProectionType type)
         {
-            PointF[] point3D = new PointF[24]; //Will be actual 2D drawing points
-
-            // Коэффициент масштабирования задается с помощью ширины монитора, чтобы сохранить искажение куба
+            PointF[] point2D = new PointF[24];
+            
             double zoom = Screen.PrimaryScreen.Bounds.Width / 1.5;
             
-            Point3D[] cubePoints = FillCubeVertices(width, height, depth);
-
-            //Calculate the camera Z position to stay constant despite rotation            
+            Point3D[] cubePoints = FillCubeVertices(Width, Height, Length);
+            Camera camera1 = new Camera();
+         
             Point3D anchorPoint = cubePoints[4]; //anchor point
             double cameraZ = -(((anchorPoint.X - cubeOrigin.X) * zoom) / cubeOrigin.X) + anchorPoint.Z;
             camera1.Position = new Point3D(cubeOrigin.X, cubeOrigin.Y, cameraZ);
+            
 
-            //Apply Rotations, moving the cube to a corner then back to middle
-            cubePoints = Math3D.Translate(cubePoints, cubeOrigin, new Point3D(0, 0, 0));
-            cubePoints = Math3D.RotateX(cubePoints, XRotation);
-            cubePoints = Math3D.RotateY(cubePoints, YRotation);
-            cubePoints = Math3D.RotateZ(cubePoints, ZRotation);
-            cubePoints = Math3D.Translate(cubePoints, new Point3D(0, 0, 0), cubeOrigin);
+            cubePoints = Transformation.Translate(cubePoints, cubeOrigin, new Point3D(0, 0, 0));
+            cubePoints = Transformation.RotateX(cubePoints, XRotation);
+            cubePoints = Transformation.RotateY(cubePoints, YRotation);
+            cubePoints = Transformation.RotateZ(cubePoints, ZRotation);
+            cubePoints = Transformation.Translate(cubePoints, new Point3D(0, 0, 0), cubeOrigin);
 
             if (type == ProectionType.Perspective)
             {
-                Convert3DPointsTo2D(cubePoints, point3D, drawOrigin, zoom);
+                PerspectiveProection(cubePoints, point2D, drawOrigin, camera1, zoom);
             }
             else
             {
-                Convert3DTo2DPoints(cubePoints, point3D, drawOrigin, zoom);
+                ParallelProection(cubePoints, point2D, drawOrigin, zoom);
             }
-            
 
-            var tmpBmp = draw2DCube(point3D, drawOrigin);
-
+            var tmpBmp = draw2DCube(point2D, drawOrigin);
             return tmpBmp;
         }
 
-        private void Convert3DPointsTo2D(Point3D[] cubePoints, PointF[] point3D, Point drawOrigin, double zoom)
+        private void PerspectiveProection(Point3D[] cubePoints, PointF[] point2D, Point drawOrigin, Camera camera1, double zoom)
         {
             Point3D vec;
-            for (int i = 0; i < point3D.Length; i++)
+            for (int i = 0; i < point2D.Length; i++)
             {
                 vec = cubePoints[i];
                 if (vec.Z - camera1.Position.Z >= 0)
                 {
-                    point3D[i].X = (int)(-(vec.X - camera1.Position.X) / (-0.1f) * zoom) + drawOrigin.X;
-                    point3D[i].Y = (int)((vec.Y - camera1.Position.Y) / (-0.1f) * zoom) + drawOrigin.Y;
+                    point2D[i].X = (int)(-(vec.X - camera1.Position.X) / (-0.1f) * zoom) + drawOrigin.X;
+                    point2D[i].Y = (int)((vec.Y - camera1.Position.Y) / (-0.1f) * zoom) + drawOrigin.Y;
                 }
                 else
                 {
-                    point3D[i].X = (int)(float)((vec.X - camera1.Position.X) / (vec.Z - camera1.Position.Z) * zoom + drawOrigin.X);
-                    point3D[i].Y = (int)(float)(-(vec.Y - camera1.Position.Y) / (vec.Z - camera1.Position.Z) * zoom + drawOrigin.Y);
+                    point2D[i].X = (int)(float)((vec.X - camera1.Position.X) / (vec.Z - camera1.Position.Z) * zoom + drawOrigin.X);
+                    point2D[i].Y = (int)(float)(-(vec.Y - camera1.Position.Y) / (vec.Z - camera1.Position.Z) * zoom + drawOrigin.Y);
                 }
             }
         }
 
-        private void Convert3DTo2DPoints(Point3D[] cubePoints, PointF[] point3D, Point drawOrigin, double zoom)
+        private void ParallelProection(Point3D[] cubePoints, PointF[] point2D, Point drawOrigin, double zoom)
         {
             Point3D vec;
-            for(int i = 0; i < point3D.Length; i++)
+            for(int i = 0; i < point2D.Length; i++)
             {
                 vec = cubePoints[i];
                 if (vec.Z - 10>= 0)
                 {
-                    point3D[i].X = (int)(float)((vec.X) + drawOrigin.X / 1.5);
-                    point3D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
+                    point2D[i].X = (int)(float)((vec.X) + drawOrigin.X / 1.5);
+                    point2D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
                 }
                 else
                 {
-                    point3D[i].X = (int)(float)((vec.X) + drawOrigin.X / 1.5);
-                    point3D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
+                    point2D[i].X = (int)(float)((vec.X) + drawOrigin.X / 1.5);
+                    point2D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
                 }
             }
         }
 
-        private static Bitmap draw2DCube(PointF[] point3D, Point drawOrigin)
+        private static Bitmap draw2DCube(PointF[] point2D, Point drawOrigin)
         {
-            //Now to plot out the points
-            Rectangle bounds = getBounds(point3D);
+            Rectangle bounds = getBounds(point2D);
             bounds.Width += drawOrigin.X;
             bounds.Height += drawOrigin.Y;
 
             Bitmap tmpBmp = new Bitmap(bounds.Width, bounds.Height);
-            Graphics g = Graphics.FromImage(tmpBmp);
-
+            
             //Back Face
-            g.DrawLine(Pens.Black, point3D[0], point3D[1]);
-            g.DrawLine(Pens.Black, point3D[1], point3D[2]);
-            g.DrawLine(Pens.Black, point3D[2], point3D[3]);
-            g.DrawLine(Pens.Black, point3D[3], point3D[0]);
+            DrawLine(tmpBmp, point2D[0], point2D[1], Color.Black);
+            DrawLine(tmpBmp, point2D[1], point2D[2], Color.Black);
+            DrawLine(tmpBmp, point2D[2], point2D[3], Color.Black);
+            DrawLine(tmpBmp, point2D[3], point2D[0], Color.Black);
 
             //Front Face
-            g.DrawLine(Pens.Black, point3D[4], point3D[5]);
-            g.DrawLine(Pens.Black, point3D[5], point3D[6]);
-            g.DrawLine(Pens.Black, point3D[6], point3D[7]);
-            g.DrawLine(Pens.Black, point3D[7], point3D[4]);
+            DrawLine(tmpBmp, point2D[4], point2D[5], Color.Black);
+            DrawLine(tmpBmp, point2D[5], point2D[6], Color.Black);
+            DrawLine(tmpBmp, point2D[6], point2D[7], Color.Black);
+            DrawLine(tmpBmp, point2D[7], point2D[4], Color.Black);
 
             //Right Face
-            g.DrawLine(Pens.Black, point3D[8], point3D[9]);
-            g.DrawLine(Pens.Black, point3D[9], point3D[10]);
-            g.DrawLine(Pens.Black, point3D[10], point3D[11]);
-            g.DrawLine(Pens.Black, point3D[11], point3D[8]);
+            DrawLine(tmpBmp, point2D[8], point2D[9], Color.Black);
+            DrawLine(tmpBmp, point2D[9], point2D[10], Color.Black);
+            DrawLine(tmpBmp, point2D[10], point2D[11], Color.Black);
+            DrawLine(tmpBmp, point2D[11], point2D[8], Color.Black);
 
             //Left Face
-            g.DrawLine(Pens.Black, point3D[12], point3D[13]);
-            g.DrawLine(Pens.Black, point3D[13], point3D[14]);
-            g.DrawLine(Pens.Black, point3D[14], point3D[15]);
-            g.DrawLine(Pens.Black, point3D[15], point3D[12]);
+            DrawLine(tmpBmp, point2D[12], point2D[13], Color.Black);
+            DrawLine(tmpBmp, point2D[13], point2D[14], Color.Black);
+            DrawLine(tmpBmp, point2D[14], point2D[15], Color.Black);
+            DrawLine(tmpBmp, point2D[15], point2D[12], Color.Black);
 
             //Bottom Face
-            g.DrawLine(Pens.Black, point3D[16], point3D[17]);
-            g.DrawLine(Pens.Black, point3D[17], point3D[18]);
-            g.DrawLine(Pens.Black, point3D[18], point3D[19]);
-            g.DrawLine(Pens.Black, point3D[19], point3D[16]);
+            DrawLine(tmpBmp, point2D[16], point2D[17], Color.Black);
+            DrawLine(tmpBmp, point2D[17], point2D[18], Color.Black);
+            DrawLine(tmpBmp, point2D[18], point2D[19], Color.Black);
+            DrawLine(tmpBmp, point2D[19], point2D[16], Color.Black);
 
             //Top Face
-            g.DrawLine(Pens.Black, point3D[20], point3D[21]);
-            g.DrawLine(Pens.Black, point3D[21], point3D[22]);
-            g.DrawLine(Pens.Black, point3D[22], point3D[23]);
-            g.DrawLine(Pens.Black, point3D[23], point3D[20]);
-
-            g.Dispose(); //Clean-up
+            DrawLine(tmpBmp, point2D[20], point2D[21], Color.Black);
+            DrawLine(tmpBmp, point2D[21], point2D[22], Color.Black);
+            DrawLine(tmpBmp, point2D[22], point2D[23], Color.Black);
+            DrawLine(tmpBmp, point2D[23], point2D[20], Color.Black);
             return tmpBmp;
         }
 
@@ -222,6 +216,76 @@ namespace CubeTransformations
             verts[23] = new Point3D(width, 0, 0);
 
             return verts;
+        }
+
+        private static void DrawLine(Bitmap bitmap, PointF point1, PointF point2, Color color)
+        {
+            int x0 = (int)point1.X;
+            int x1 = (int)point2.X;
+            int y0 = (int)point1.Y;
+            int y1 = (int)point2.Y;
+            var data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+
+            unsafe
+            {
+                byte* ptr = (byte*)data.Scan0.ToPointer();
+
+
+                int dx = (x1 > x0) ? (x1 - x0) : (x0 - x1);
+                int dy = (y1 > y0) ? (y1 - y0) : (y0 - y1);
+                //Направление приращения
+                int sx = (x1 >= x0) ? (1) : (-1);
+                int sy = (y1 >= y0) ? (1) : (-1);
+
+                if (dy < dx)
+                {
+                    int d = (dy << 1) - dx;
+                    int d1 = dy << 1;
+                    int d2 = (dy - dx) << 1;
+                    PixelOperations.SetPixelUnsafe(ptr, new byte[] { 0, 0, 0, 255 }, data.Stride, x0 * 4, y0, 4);
+                    int x = x0 + sx;
+                    int y = y0;
+                    for (int i = 1; i <= dx; i++)
+                    {
+                        if (d > 0)
+                        {
+                            d += d2;
+                            y += sy;
+                        }
+                        else
+                        {
+                            d += d1;
+                        }
+                        PixelOperations.SetPixelUnsafe(ptr, new byte[] { 0, 0, 0, 255 }, data.Stride, x * 4, y, 4);
+                        x += sx;
+                    }
+                }
+                else
+                {
+                    int d = (dx << 1) - dy;
+                    int d1 = dx << 1;
+                    int d2 = (dx - dy) << 1;
+                    PixelOperations.SetPixelUnsafe(ptr, new byte[] { 0, 0, 0, 255 }, data.Stride, x0 * 4, y0, 4);
+                    int x = x0;
+                    int y = y0 + sy;
+                    for (int i = 1; i <= dy; i++)
+                    {
+                        if (d > 0)
+                        {
+                            d += d2;
+                            x += sx;
+                        }
+                        else
+                        {
+                            d += d1;
+                        }
+                        PixelOperations.SetPixelUnsafe(ptr, new byte[] { 0, 0, 0, 255 }, data.Stride, x * 4, y, 4);
+                        y += sy;
+                    }
+                }
+            }
+
+            bitmap.UnlockBits(data);
         }
     }
 }

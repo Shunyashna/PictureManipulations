@@ -6,22 +6,15 @@ using System.Threading.Tasks;
 
 namespace CubeTransformations
 {
-    public class Math3D
+    public class Transformation
     {
 
+        //[ 1    0        0   ]
+        //[ 0   cos(x)  sin(x)]
+        //[ 0   -sin(x) cos(x)]
         private static Point3D RotateX(Point3D point3D, double degrees)
         {
-            //Here we use Euler's matrix formula for rotating a 3D point x degrees around the x-axis
-
-            //[ a  b  c ] [ x ]   [ x*a + y*b + z*c ]
-            //[ d  e  f ] [ y ] = [ x*d + y*e + z*f ]
-            //[ g  h  i ] [ z ]   [ x*g + y*h + z*i ]
-
-            //[ 1    0        0   ]
-            //[ 0   cos(x)  sin(x)]
-            //[ 0   -sin(x) cos(x)]
-
-            double cDegrees = (Math.PI * degrees) / 180.0f; //Convert degrees to radian for .Net Cos/Sin functions
+            double cDegrees = (Math.PI * degrees) / 180.0f;
             double cosDegrees = Math.Cos(cDegrees);
             double sinDegrees = Math.Sin(cDegrees);
 
@@ -31,15 +24,12 @@ namespace CubeTransformations
             return new Point3D(point3D.X, y, z);
         }
 
+        //[ cos(x)   0    sin(x)]
+        //[   0      1      0   ]
+        //[-sin(x)   0    cos(x)]
         private static Point3D RotateY(Point3D point3D, double degrees)
         {
-            //Y-axis
-
-            //[ cos(x)   0    sin(x)]
-            //[   0      1      0   ]
-            //[-sin(x)   0    cos(x)]
-
-            double cDegrees = (Math.PI * degrees) / 180.0; //Radians
+            double cDegrees = (Math.PI * degrees) / 180.0;
             double cosDegrees = Math.Cos(cDegrees);
             double sinDegrees = Math.Sin(cDegrees);
 
@@ -49,14 +39,11 @@ namespace CubeTransformations
             return new Point3D(x, point3D.Y, z);
         }
 
+        //[ cos(x)  sin(x) 0]
+        //[ -sin(x) cos(x) 0]
+        //[    0     0     1]
         private static Point3D RotateZ(Point3D point3D, double degrees)
         {
-            //Z-axis
-
-            //[ cos(x)  sin(x) 0]
-            //[ -sin(x) cos(x) 0]
-            //[    0     0     1]
-
             double radianDegrees = (Math.PI * degrees) / 180.0;
             double cosDegrees = Math.Cos(radianDegrees);
             double sinDegrees = Math.Sin(radianDegrees);
@@ -69,15 +56,13 @@ namespace CubeTransformations
 
         public static Point3D Translate(Point3D points3D, Point3D oldOrigin, Point3D newOrigin)
         {
-            //Moves a 3D point based on a moved reference point
             Point3D difference = new Point3D(newOrigin.X - oldOrigin.X, newOrigin.Y - oldOrigin.Y, newOrigin.Z - oldOrigin.Z);
             points3D.X += difference.X;
             points3D.Y += difference.Y;
             points3D.Z += difference.Z;
             return points3D;
         }
-
-        //These are to make the above functions workable with arrays of 3D points
+        
         public static Point3D[] RotateX(Point3D[] points3D, double degrees)
         {
             for (int i = 0; i < points3D.Length; i++)
