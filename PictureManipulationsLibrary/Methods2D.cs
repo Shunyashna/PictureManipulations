@@ -12,13 +12,12 @@ namespace PictureManipulationsLibrary
     {
         public static Color GetInterpolateColor(Color color1, Color color2, double interpolation)
         {
-            var col1 = PixelOperations.ColorToHSV(color1);
-            var col2 = PixelOperations.ColorToHSV(color2);
             Color newColor;
-            int H = Clip((int)(col1.hue * interpolation + col2.hue * (1 - interpolation)));
-            int S = Clip((int)(col1.saturation * interpolation + col2.saturation * (1 - interpolation)));
-            int V = Clip((int)(col1.value * interpolation + col2.value * (1 - interpolation)));
-            newColor = PixelOperations.ColorFromHSV(H, S, V);
+            //int A = Clip((int)(color1.A * interpolation + color2.A * (1 - interpolation)));
+            int R = Clip((int)(color1.R * (1 - interpolation) + color2.R * interpolation));
+            int G = Clip((int)(color1.G * (1 - interpolation) + color2.G * interpolation));
+            int B = Clip((int)(color1.B * (1 - interpolation) + color2.B * interpolation));
+            newColor = Color.FromArgb(R, G, B);
             return newColor;
         }
 
@@ -137,6 +136,80 @@ namespace PictureManipulationsLibrary
                 }
             }
             return result;
+        }
+
+        public static void DrawLine(Bitmap bitmap, PointF point1, PointF point2, Color color1, Color color2)
+        {
+            int x0 = (int)point1.X;
+            int x1 = (int)point2.X;
+            int y0 = (int)point1.Y;
+            int y1 = (int)point2.Y;
+            var data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+
+            unsafe
+            {
+                byte* ptr = (byte*)data.Scan0.ToPointer();
+
+
+                int dx = (x1 > x0) ? (x1 - x0) : (x0 - x1);
+                int dy = (y1 > y0) ? (y1 - y0) : (y0 - y1);
+                //Направление приращения
+                int sx = (x1 >= x0) ? (1) : (-1);
+                int sy = (y1 >= y0) ? (1) : (-1);
+
+                if (dy < dx)
+                {
+                    int d = (dy << 1) - dx;
+                    int d1 = dy << 1;
+                    int d2 = (dy - dx) << 1;
+                    var color = GetInterpolateColor(color1, color2, 0);
+                    PixelOperations.SetPixelUnsafe(ptr, new byte[] { color.B, color.G, color.R, 255 }, data.Stride, x0 * 4, y0, 4);
+                    int x = x0 + sx;
+                    int y = y0;
+                    for (int i = 1; i <= dx; i++)
+                    {
+                        if (d > 0)
+                        {
+                            d += d2;
+                            y += sy;
+                        }
+                        else
+                        {
+                            d += d1;
+                        }
+                        color = GetInterpolateColor(color1, color2, (double)i / dx);
+                        PixelOperations.SetPixelUnsafe(ptr, new byte[] { color.B, color.G, color.R, 255 }, data.Stride, x * 4, y, 4);
+                        x += sx;
+                    }
+                }
+                else
+                {
+                    int d = (dx << 1) - dy;
+                    int d1 = dx << 1;
+                    int d2 = (dx - dy) << 1;
+                    var color = GetInterpolateColor(color1, color2, 0);
+                    PixelOperations.SetPixelUnsafe(ptr, new byte[] { color.B, color.G, color.R, 255 }, data.Stride, x0 * 4, y0, 4);
+                    int x = x0;
+                    int y = y0 + sy;
+                    for (int i = 1; i <= dy; i++)
+                    {
+                        if (d > 0)
+                        {
+                            d += d2;
+                            x += sx;
+                        }
+                        else
+                        {
+                            d += d1;
+                        }
+                        color = GetInterpolateColor(color1, color2, (double)i/dy);
+                        PixelOperations.SetPixelUnsafe(ptr, new byte[] { color.B, color.G, color.R, 255 }, data.Stride, x * 4, y, 4);
+                        y += sy;
+                    }
+                }
+            }
+
+            bitmap.UnlockBits(data);
         }
 
     }

@@ -60,7 +60,7 @@ namespace CubeTransformations
 
         public Bitmap drawCube(Point drawOrigin, ProectionType type)
         {
-            PointF[] point2D = new PointF[24];
+            PointF[] point2D = new PointF[8];
             
             double zoom = Screen.PrimaryScreen.Bounds.Width / 1.5;
             
@@ -80,14 +80,16 @@ namespace CubeTransformations
 
             if (type == ProectionType.Perspective)
             {
+                //camera1.Position = new Point3D(cubeOrigin.X, cubeOrigin.Y, 1000);
                 PerspectiveProection(cubePoints, point2D, drawOrigin, camera1, zoom);
             }
             else
             {
+                camera1.Position = new Point3D(cubeOrigin.X, cubeOrigin.Y, 1000);
                 ParallelProection(cubePoints, point2D, drawOrigin, zoom);
             }
 
-            var tmpBmp = draw2DCube(point2D, drawOrigin);
+            var tmpBmp = draw2DCube(point2D, drawOrigin, cubePoints, camera1, type);
             return tmpBmp;
         }
 
@@ -113,71 +115,72 @@ namespace CubeTransformations
         private void ParallelProection(Point3D[] cubePoints, PointF[] point2D, Point drawOrigin, double zoom)
         {
             Point3D vec;
-            for(int i = 0; i < point2D.Length; i++)
+            for (int i = 0; i < point2D.Length; i++)
             {
                 vec = cubePoints[i];
-                if (vec.Z - 10>= 0)
-                {
-                    point2D[i].X = (int)(float)((vec.X) + drawOrigin.X / 1.5);
-                    point2D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
-                }
-                else
-                {
-                    point2D[i].X = (int)(float)((vec.X) + drawOrigin.X / 1.5);
-                    point2D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
-                }
+                point2D[i].X = (int)(float)((vec.X) + drawOrigin.X / 1.5);
+                point2D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
             }
         }
 
-        private static Bitmap draw2DCube(PointF[] point2D, Point drawOrigin)
+        private static Bitmap draw2DCube(PointF[] point2D, Point drawOrigin, Point3D[] cubePoints, Camera camera1, ProectionType type)
         {
             Rectangle bounds = getBounds(point2D);
             bounds.Width += drawOrigin.X;
             bounds.Height += drawOrigin.Y;
 
             Bitmap tmpBmp = new Bitmap(bounds.Width, bounds.Height);
-            
+
+            float[] distances = new float[8];
+            for (int i = 0; i < distances.Length; i++)
+            {
+                distances[i] = DistanceFromPointToCamera(cubePoints[i], camera1.Position);
+            }
+
+            Color[] verticeColor = new Color[8];
+            float minDist = distances[0];
+            float maxDist = distances[0];
+            for (int i = 0; i < distances.Length; i++)
+            {
+                if (maxDist < distances[i]) maxDist = distances[i];
+                if (minDist > distances[i]) minDist = distances[i];
+            }
+
+            for (int i = 0; i < verticeColor.Length; i++)
+            {
+                verticeColor[i] = Methods2D.GetInterpolateColor(Color.Black, Color.Yellow, ((distances[i] - minDist) / (maxDist - minDist)));
+            }
+
             //Back Face
-            DrawLine(tmpBmp, point2D[0], point2D[1], Color.Black);
-            DrawLine(tmpBmp, point2D[1], point2D[2], Color.Black);
-            DrawLine(tmpBmp, point2D[2], point2D[3], Color.Black);
-            DrawLine(tmpBmp, point2D[3], point2D[0], Color.Black);
+            Methods2D.DrawLine(tmpBmp, point2D[0], point2D[1], verticeColor[0], verticeColor[1]);
+            Methods2D.DrawLine(tmpBmp, point2D[1], point2D[2], verticeColor[1], verticeColor[2]);
+            Methods2D.DrawLine(tmpBmp, point2D[2], point2D[3], verticeColor[2], verticeColor[3]);
+            Methods2D.DrawLine(tmpBmp, point2D[3], point2D[0], verticeColor[3], verticeColor[0]);
 
             //Front Face
-            DrawLine(tmpBmp, point2D[4], point2D[5], Color.Black);
-            DrawLine(tmpBmp, point2D[5], point2D[6], Color.Black);
-            DrawLine(tmpBmp, point2D[6], point2D[7], Color.Black);
-            DrawLine(tmpBmp, point2D[7], point2D[4], Color.Black);
+            Methods2D.DrawLine(tmpBmp, point2D[4], point2D[5], verticeColor[4], verticeColor[5]);
+            Methods2D.DrawLine(tmpBmp, point2D[5], point2D[6], verticeColor[5], verticeColor[6]);
+            Methods2D.DrawLine(tmpBmp, point2D[6], point2D[7], verticeColor[6], verticeColor[7]);
+            Methods2D.DrawLine(tmpBmp, point2D[7], point2D[4], verticeColor[7], verticeColor[4]);
 
             //Right Face
-            DrawLine(tmpBmp, point2D[8], point2D[9], Color.Black);
-            DrawLine(tmpBmp, point2D[9], point2D[10], Color.Black);
-            DrawLine(tmpBmp, point2D[10], point2D[11], Color.Black);
-            DrawLine(tmpBmp, point2D[11], point2D[8], Color.Black);
+            Methods2D.DrawLine(tmpBmp, point2D[0], point2D[4], verticeColor[0], verticeColor[4]);
+            Methods2D.DrawLine(tmpBmp, point2D[5], point2D[1], verticeColor[5], verticeColor[1]);
 
             //Left Face
-            DrawLine(tmpBmp, point2D[12], point2D[13], Color.Black);
-            DrawLine(tmpBmp, point2D[13], point2D[14], Color.Black);
-            DrawLine(tmpBmp, point2D[14], point2D[15], Color.Black);
-            DrawLine(tmpBmp, point2D[15], point2D[12], Color.Black);
+            Methods2D.DrawLine(tmpBmp, point2D[3], point2D[7], verticeColor[3], verticeColor[7]);
+            Methods2D.DrawLine(tmpBmp, point2D[6], point2D[2], verticeColor[6], verticeColor[2]);
 
-            //Bottom Face
-            DrawLine(tmpBmp, point2D[16], point2D[17], Color.Black);
-            DrawLine(tmpBmp, point2D[17], point2D[18], Color.Black);
-            DrawLine(tmpBmp, point2D[18], point2D[19], Color.Black);
-            DrawLine(tmpBmp, point2D[19], point2D[16], Color.Black);
-
-            //Top Face
-            DrawLine(tmpBmp, point2D[20], point2D[21], Color.Black);
-            DrawLine(tmpBmp, point2D[21], point2D[22], Color.Black);
-            DrawLine(tmpBmp, point2D[22], point2D[23], Color.Black);
-            DrawLine(tmpBmp, point2D[23], point2D[20], Color.Black);
             return tmpBmp;
+        }
+        public static float DistanceFromPointToCamera(Point3D a, Point3D b)
+        {
+            return (float)Math.Sqrt(Math.Pow((b.X - a.X), 2) + Math.Pow((b.Y - a.Y), 2) + Math.Pow((b.Z - a.Z), 2));
         }
 
         public static Point3D[] FillCubeVertices(int width, int height, int depth)
         {
-            Point3D[] verts = new Point3D[24];
+            Point3D[] verts = new Point3D[8];
 
             //front face
             verts[0] = new Point3D(0, 0, 0);
@@ -191,101 +194,9 @@ namespace CubeTransformations
             verts[6] = new Point3D(width, height, depth);
             verts[7] = new Point3D(width, 0, depth);
 
-            //left face
-            verts[8] = new Point3D(0, 0, 0);
-            verts[9] = new Point3D(0, 0, depth);
-            verts[10] = new Point3D(0, height, depth);
-            verts[11] = new Point3D(0, height, 0);
-
-            //right face
-            verts[12] = new Point3D(width, 0, 0);
-            verts[13] = new Point3D(width, 0, depth);
-            verts[14] = new Point3D(width, height, depth);
-            verts[15] = new Point3D(width, height, 0);
-
-            //top face
-            verts[16] = new Point3D(0, height, 0);
-            verts[17] = new Point3D(0, height, depth);
-            verts[18] = new Point3D(width, height, depth);
-            verts[19] = new Point3D(width, height, 0);
-
-            //bottom face
-            verts[20] = new Point3D(0, 0, 0);
-            verts[21] = new Point3D(0, 0, depth);
-            verts[22] = new Point3D(width, 0, depth);
-            verts[23] = new Point3D(width, 0, 0);
-
             return verts;
         }
 
-        private static void DrawLine(Bitmap bitmap, PointF point1, PointF point2, Color color)
-        {
-            int x0 = (int)point1.X;
-            int x1 = (int)point2.X;
-            int y0 = (int)point1.Y;
-            int y1 = (int)point2.Y;
-            var data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-
-            unsafe
-            {
-                byte* ptr = (byte*)data.Scan0.ToPointer();
-
-
-                int dx = (x1 > x0) ? (x1 - x0) : (x0 - x1);
-                int dy = (y1 > y0) ? (y1 - y0) : (y0 - y1);
-                //Направление приращения
-                int sx = (x1 >= x0) ? (1) : (-1);
-                int sy = (y1 >= y0) ? (1) : (-1);
-
-                if (dy < dx)
-                {
-                    int d = (dy << 1) - dx;
-                    int d1 = dy << 1;
-                    int d2 = (dy - dx) << 1;
-                    PixelOperations.SetPixelUnsafe(ptr, new byte[] { 0, 0, 0, 255 }, data.Stride, x0 * 4, y0, 4);
-                    int x = x0 + sx;
-                    int y = y0;
-                    for (int i = 1; i <= dx; i++)
-                    {
-                        if (d > 0)
-                        {
-                            d += d2;
-                            y += sy;
-                        }
-                        else
-                        {
-                            d += d1;
-                        }
-                        PixelOperations.SetPixelUnsafe(ptr, new byte[] { 0, 0, 0, 255 }, data.Stride, x * 4, y, 4);
-                        x += sx;
-                    }
-                }
-                else
-                {
-                    int d = (dx << 1) - dy;
-                    int d1 = dx << 1;
-                    int d2 = (dx - dy) << 1;
-                    PixelOperations.SetPixelUnsafe(ptr, new byte[] { 0, 0, 0, 255 }, data.Stride, x0 * 4, y0, 4);
-                    int x = x0;
-                    int y = y0 + sy;
-                    for (int i = 1; i <= dy; i++)
-                    {
-                        if (d > 0)
-                        {
-                            d += d2;
-                            x += sx;
-                        }
-                        else
-                        {
-                            d += d1;
-                        }
-                        PixelOperations.SetPixelUnsafe(ptr, new byte[] { 0, 0, 0, 255 }, data.Stride, x * 4, y, 4);
-                        y += sy;
-                    }
-                }
-            }
-
-            bitmap.UnlockBits(data);
-        }
+        
     }
 }

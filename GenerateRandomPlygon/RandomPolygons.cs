@@ -49,10 +49,8 @@ namespace GenerateRandomPlygon
             int previousY = firstY;
             angles.Add(new Point(firstX, firstY));
             
-            
             for (int i = 1; i < xs.Count; i++)
             {
-
                 int y = rnd.Next(0, firstY);
                 angles.Add(new Point(xs[i], y));
                 previousX = xs[i];
@@ -60,7 +58,6 @@ namespace GenerateRandomPlygon
             }
             for (int i = xs.Count-1; i > 0 ; i--)
             {
-
                 int y = rnd.Next(firstY, pictureBox1.Height - 1);
                 angles.Add(new Point(xs[i], y));
                 previousX = xs[i];
@@ -69,7 +66,6 @@ namespace GenerateRandomPlygon
             angles.Add(new Point(firstX, firstY));
 
             FillPolygon(angles, firstX, xs[xs.Count - 1]);
-            timer1.Stop();
         }
 
         private void FillPolygon(List<Point> polygon, int minX, int maxX)
@@ -141,8 +137,10 @@ namespace GenerateRandomPlygon
             {
                 if (i + 1 != xs.Count())
                 {
-                    var color1 = xs.ElementAt(i).Value;
-                    var color2 = xs.ElementAt(i + 1).Value;
+                    //var color1 = xs.ElementAt(i).Value;
+                    //var color2 = xs.ElementAt(i + 1).Value;
+                    var color1 = Color.Red;
+                    var color2 = Color.Green;
                     DrawSegment((int)Math.Round(xs.ElementAt(i).Key), (int)Math.Round(xs.ElementAt(i + 1).Key), (int)Math.Round(y), (int)Math.Round(y),
                     color1, color2);
                 }
@@ -152,11 +150,11 @@ namespace GenerateRandomPlygon
         private Color GetInterpolateColor(Color color1, Color color2, double interpolation)
         {
             Color newColor;
-            int A = Clip((int)(color1.A * interpolation + color2.A * (1 - interpolation)));
-            int R = Clip((int)(color1.R * interpolation + color2.R * (1 - interpolation)));
-            int G = Clip((int)(color1.G * interpolation + color2.G * (1 - interpolation)));
-            int B = Clip((int)(color1.B * interpolation + color2.B * (1 - interpolation)));
-            newColor = Color.FromArgb(A, R, G, B);
+            //int A = Clip((int)(color1.A * interpolation + color2.A * (1 - interpolation)));
+            int R = Clip((int)(color1.R * (1-interpolation) + color2.R * interpolation));
+            int G = Clip((int)(color1.G * (1-interpolation) + color2.G * interpolation));
+            int B = Clip((int)(color1.B * (1-interpolation) + color2.B * interpolation));
+            newColor = Color.FromArgb( R, G, B);
             return newColor;
         }
         private int Clip(int num)
@@ -184,7 +182,7 @@ namespace GenerateRandomPlygon
                     int d = (dy << 1) - dx;
                     int d1 = dy << 1;
                     int d2 = (dy - dx) << 1;
-                    var color = GetInterpolateColor(color1, color2, 0);
+                    var color = GetInterpolateColor(color1, color2, 1);
                     PixelOperations.SetPixelUnsafe(ptr, new byte[] { color.B, color.G, color.R, 255 }, data.Stride, x0 * 4, y0, 4);
                     int x = x0 + sx;
                     int y = y0;
@@ -209,7 +207,7 @@ namespace GenerateRandomPlygon
                     int d = (dx << 1) - dy;
                     int d1 = dx << 1;
                     int d2 = (dx - dy) << 1;
-                    var color = GetInterpolateColor(color1, color2, 0);
+                    var color = GetInterpolateColor(color1, color2, 1);
                     PixelOperations.SetPixelUnsafe(ptr, new byte[] { color.B, color.G, color.R, 255 }, data.Stride, x0 * 4, y0, 4);
                     int x = x0;
                     int y = y0 + sy;
