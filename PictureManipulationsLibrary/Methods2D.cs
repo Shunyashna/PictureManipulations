@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CubeTransformations;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -24,6 +25,35 @@ namespace PictureManipulationsLibrary
         private static int Clip(int num)
         {
             return num <= 0 ? 0 : (num >= 255 ? 255 : num);
+        }
+
+        public static Color[] GetIntence(Point3D[] cubePoints, Camera camera1)
+        {
+            float[] distances = new float[8];
+            for (int i = 0; i < distances.Length; i++)
+            {
+                distances[i] = DistanceFromPointToCamera(cubePoints[i], camera1.Position);
+            }
+
+            Color[] verticeColor = new Color[8];
+            float minDist = distances[0];
+            float maxDist = distances[0];
+            for (int i = 0; i < distances.Length; i++)
+            {
+                if (maxDist < distances[i]) maxDist = distances[i];
+                if (minDist > distances[i]) minDist = distances[i];
+            }
+
+            for (int i = 0; i < verticeColor.Length; i++)
+            {
+                verticeColor[i] = Methods2D.GetInterpolateColor(Color.Yellow, Color.Black, ((distances[i] - minDist) / (maxDist - minDist)));
+            }
+            return verticeColor;
+        }
+
+        public static float DistanceFromPointToCamera(Point3D a, Point3D b)
+        {
+            return (float)Math.Sqrt(Math.Pow((b.X - a.X), 2) + Math.Pow((b.Y - a.Y), 2) + Math.Pow((b.Z - a.Z), 2));
         }
 
         public static void DrawSegment(Bitmap bitmap, int x0, int x1, int y0, int y1, Color color1, Color color2)
@@ -212,5 +242,86 @@ namespace PictureManipulationsLibrary
             bitmap.UnlockBits(data);
         }
 
+        public static void FillPolygon(Bitmap bitmap, List<PointF> polygon, List<Color> colors)
+        {
+            Random rnd = new Random();
+            var ys = new List<int>();
+            polygon.ForEach(i => ys.Add((int)i.Y));
+            ys = ys.OrderBy(x => x).ToList();
+
+            Dictionary<PointF, Color> mapping = new Dictionary<PointF, Color>();
+            for (int i = 0; i < ys.Count - 1; i++)
+            {
+                if (!mapping.Keys.Contains(polygon[i]))
+                {
+                    //var color = Color.FromArgb(rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
+                    mapping.Add(polygon[i], colors[i]);
+                }
+            }
+            for (float j = ys[0] + 0.001f; j <= ys[ys.Count - 1]; j += 0.7f)
+            {
+                ScanLine(mapping, j, bitmap);
+            }
+
+            /*for (int i = 0; i < polygon.Count - 1; i++)
+            {
+                DrawLine(bitmap, polygon[i], polygon[i + 1], Color.Red, Color.Red);
+            }*/
+        }
+        public static void ScanLine(Dictionary<PointF, Color> mapping, float y, Bitmap bitmap)
+        {
+            var lineX = new Dictionary<float, Color>();
+            for (int i = 0; i < mapping.Count; i++)
+            {
+                PointF p1 = new PointF();
+                var p2 = new PointF();
+                int x1 = 0;
+                int x2 = 0;
+                int next = 0;
+                if (i == mapping.Count - 1)
+                {
+                    next = 0;
+                }
+                else
+                {
+                    next = i + 1;
+                }
+                p1 = mapping.ElementAt(i).Key;
+                p2 = mapping.ElementAt(next).Key;
+                x1 = (int)mapping.ElementAt(i).Key.X;
+                x2 = (int)mapping.ElementAt(next).Key.X;
+                var low = x1 > x2 ? x2 : x1;
+                var high = x1 > x2 ? x1 : x2;
+                var intersection = Methods2D.GetIntersectionPointOfTwoLines(p1, p2, new PointF(0, y),
+                                                                            new PointF(bitmap.Width - 1, y),
+                                                                            out var status);
+
+                if (intersection != null && status == 1 && intersection.X >= low && intersection.X <= high
+                    && !lineX.Keys.Contains(intersection.X))
+                {
+                    double progress = 0;
+                    if (x1 != x2)
+                    {
+                        progress = (intersection.X - low) / Math.Abs(x2 - x1);
+                    }
+                    var color = GetInterpolateColor(mapping.ElementAt(i).Value, mapping.ElementAt(next).Value, progress);
+                    lineX.Add(intersection.X, color);
+                }
+            }
+
+            var xs = lineX.OrderBy(x => x.Key);
+            for (int i = 0; i < xs.Count(); i += 2)
+            {
+                if (i + 1 != xs.Count())
+                {
+                    var color1 = xs.ElementAt(i).Value;
+                    var color2 = xs.ElementAt(i + 1).Value;
+                    //var color1 = Color.Red;
+                    //var color2 = Color.Black;
+                    DrawSegment(bitmap, (int)Math.Round(xs.ElementAt(i).Key), (int)Math.Round(xs.ElementAt(i + 1).Key), (int)Math.Round(y), (int)Math.Round(y),
+                    color1, color2);
+                }
+            }
+        }
     }
 }

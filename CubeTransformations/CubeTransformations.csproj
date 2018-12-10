@@ -47,7 +47,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Camera.cs" />
     <Compile Include="Cube.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -55,9 +54,6 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Transformation.cs" />
-    <Compile Include="Point3D.cs" />
-    <Compile Include="ProectionType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">

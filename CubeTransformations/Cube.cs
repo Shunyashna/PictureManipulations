@@ -14,7 +14,7 @@ namespace CubeTransformations
     {
         public int Width { get; }
         public int Height { get; }
-        public int Length { get; }
+        public int Depth { get; }
 
         public double XRotation { get; set; }
         public double YRotation { get; set; }
@@ -27,8 +27,8 @@ namespace CubeTransformations
         {
             Width = side;
             Height = side;
-            Length = side;
-            cubeOrigin = new Point3D(Width / 2, Height / 2, Length / 2);
+            Depth = side;
+            cubeOrigin = new Point3D(Width / 2, Height / 2, Depth / 2);
 
             XRotation = 0.0;
             YRotation = 0.0;
@@ -64,7 +64,7 @@ namespace CubeTransformations
             
             double zoom = Screen.PrimaryScreen.Bounds.Width / 1.5;
             
-            Point3D[] cubePoints = FillCubeVertices(Width, Height, Length);
+            Point3D[] cubePoints = FillCubeVertices(Width, Height, Depth);
             Camera camera1 = new Camera();
          
             Point3D anchorPoint = cubePoints[4]; //anchor point
@@ -86,7 +86,7 @@ namespace CubeTransformations
             else
             {
                 camera1.Position = new Point3D(cubeOrigin.X, cubeOrigin.Y, 1000);
-                ParallelProection(cubePoints, point2D, drawOrigin, zoom);
+                ParallelProection(cubePoints, point2D, drawOrigin);
             }
 
             var tmpBmp = draw2DCube(point2D, drawOrigin, cubePoints, camera1, type);
@@ -112,7 +112,7 @@ namespace CubeTransformations
             }
         }
 
-        private void ParallelProection(Point3D[] cubePoints, PointF[] point2D, Point drawOrigin, double zoom)
+        private void ParallelProection(Point3D[] cubePoints, PointF[] point2D, Point drawOrigin)
         {
             Point3D vec;
             for (int i = 0; i < point2D.Length; i++)
@@ -122,36 +122,40 @@ namespace CubeTransformations
                 point2D[i].Y = (int)(float)((vec.Y) + drawOrigin.Y / 1.5);
             }
         }
+        private void ParallelPointProection(Point3D point, ref Point point2D, Point drawOrigin)
+        {
+                point2D.X = (int)(float)((point.X) + drawOrigin.X / 1.5);
+                point2D.Y = (int)(float)((point.Y) + drawOrigin.Y / 1.5);
+        }
 
-        private static Bitmap draw2DCube(PointF[] point2D, Point drawOrigin, Point3D[] cubePoints, Camera camera1, ProectionType type)
+        private Bitmap draw2DCube(PointF[] point2D, Point drawOrigin, Point3D[] cubePoints, Camera camera1, ProectionType type)
         {
             Rectangle bounds = getBounds(point2D);
             bounds.Width += drawOrigin.X;
             bounds.Height += drawOrigin.Y;
-
+            Camera light = new Camera();
+            light.Position = new Point3D(Width / 2 + 175, Height / 2, Depth / 2);
+            
             Bitmap tmpBmp = new Bitmap(bounds.Width, bounds.Height);
 
-            float[] distances = new float[8];
-            for (int i = 0; i < distances.Length; i++)
-            {
-                distances[i] = DistanceFromPointToCamera(cubePoints[i], camera1.Position);
-            }
+            Point light2D = new Point();
+            ParallelPointProection(light.Position, ref light2D, drawOrigin);
 
-            Color[] verticeColor = new Color[8];
-            float minDist = distances[0];
-            float maxDist = distances[0];
-            for (int i = 0; i < distances.Length; i++)
-            {
-                if (maxDist < distances[i]) maxDist = distances[i];
-                if (minDist > distances[i]) minDist = distances[i];
-            }
+            tmpBmp.SetPixel(light2D.X, light2D.Y, Color.OrangeRed);
+            tmpBmp.SetPixel(light2D.X + 1, light2D.Y, Color.OrangeRed);
+            tmpBmp.SetPixel(light2D.X - 1, light2D.Y, Color.OrangeRed);
+            tmpBmp.SetPixel(light2D.X + 1, light2D.Y + 1, Color.OrangeRed);
+            tmpBmp.SetPixel(light2D.X + 1, light2D.Y - 1, Color.OrangeRed);
+            tmpBmp.SetPixel(light2D.X - 1, light2D.Y - 1, Color.OrangeRed);
+            tmpBmp.SetPixel(light2D.X - 1, light2D.Y + 1, Color.OrangeRed);
+            tmpBmp.SetPixel(light2D.X, light2D.Y + 1, Color.OrangeRed);
+            tmpBmp.SetPixel(light2D.X, light2D.Y - 1, Color.OrangeRed);
 
-            for (int i = 0; i < verticeColor.Length; i++)
-            {
-                verticeColor[i] = Methods2D.GetInterpolateColor(Color.Black, Color.Yellow, ((distances[i] - minDist) / (maxDist - minDist)));
-            }
+            Color[] verticeColor = Methods2D.GetIntence(cubePoints, light);
 
-            //Back Face
+            DrawCubePolygons(tmpBmp, point2D, verticeColor, cubePoints);
+
+            /*//Back Face
             Methods2D.DrawLine(tmpBmp, point2D[0], point2D[1], verticeColor[0], verticeColor[1]);
             Methods2D.DrawLine(tmpBmp, point2D[1], point2D[2], verticeColor[1], verticeColor[2]);
             Methods2D.DrawLine(tmpBmp, point2D[2], point2D[3], verticeColor[2], verticeColor[3]);
@@ -169,16 +173,13 @@ namespace CubeTransformations
 
             //Left Face
             Methods2D.DrawLine(tmpBmp, point2D[3], point2D[7], verticeColor[3], verticeColor[7]);
-            Methods2D.DrawLine(tmpBmp, point2D[6], point2D[2], verticeColor[6], verticeColor[2]);
+            Methods2D.DrawLine(tmpBmp, point2D[6], point2D[2], verticeColor[6], verticeColor[2]);*/
+            
 
             return tmpBmp;
         }
-        public static float DistanceFromPointToCamera(Point3D a, Point3D b)
-        {
-            return (float)Math.Sqrt(Math.Pow((b.X - a.X), 2) + Math.Pow((b.Y - a.Y), 2) + Math.Pow((b.Z - a.Z), 2));
-        }
 
-        public static Point3D[] FillCubeVertices(int width, int height, int depth)
+        public Point3D[] FillCubeVertices(int width, int height, int depth)
         {
             Point3D[] verts = new Point3D[8];
 
@@ -195,6 +196,49 @@ namespace CubeTransformations
             verts[7] = new Point3D(width, 0, depth);
 
             return verts;
+        }
+
+        public Bitmap DrawCubePolygons(Bitmap tmpBmp, PointF[] point2D, Color[] colors, Point3D[] cubePoints)
+        {
+
+            var normals = LightingLibrary.CalculateNormals(cubePoints);
+            if (normals.front.Z < 0)
+            {
+                Methods2D.FillPolygon(tmpBmp,
+                    new List<PointF> { point2D[0], point2D[1], point2D[2], point2D[3], point2D[0] },
+                    new List<Color>() { colors[0], colors[1], colors[2], colors[3], colors[0] });
+            }
+            if (normals.right.Z < 0)
+            {
+                Methods2D.FillPolygon(tmpBmp,
+                new List<PointF> { point2D[3], point2D[2], point2D[6], point2D[7], point2D[3] },
+                new List<Color>() { colors[3], colors[2], colors[6], colors[7], colors[3] });
+            }
+            if (normals.back.Z < 0)
+            {
+                Methods2D.FillPolygon(tmpBmp,
+                new List<PointF> { point2D[4], point2D[5], point2D[6], point2D[7], point2D[4] },
+                new List<Color>() { colors[4], colors[5], colors[6], colors[7], colors[4] });
+            }
+            if (normals.left.Z < 0)
+            {
+                Methods2D.FillPolygon(tmpBmp,
+                new List<PointF> { point2D[0], point2D[1], point2D[5], point2D[4], point2D[0] },
+                new List<Color>() { colors[0], colors[1], colors[5], colors[4], colors[0] });
+            }
+            if (normals.top.Z < 0)
+            {
+                Methods2D.FillPolygon(tmpBmp,
+                new List<PointF> { point2D[1], point2D[5], point2D[6], point2D[2], point2D[1] },
+                new List<Color>() { colors[1], colors[5], colors[6], colors[2], colors[1] });
+            }
+            if (normals.bottom.Z < 0)
+            {
+                Methods2D.FillPolygon(tmpBmp,
+                new List<PointF> { point2D[0], point2D[4], point2D[7], point2D[3], point2D[0] },
+                new List<Color>() { colors[0], colors[4], colors[7], colors[3], colors[0] });
+            }
+            return tmpBmp;
         }
 
         
