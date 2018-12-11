@@ -33,7 +33,7 @@ namespace GenerateRandomPlygon
             Random rnd = new Random();
             bitmap = new Bitmap(pictureBox1.Width, pictureBox1.Height);
 
-            List<Point> angles = new List<Point>();
+            /*List<Point> angles = new List<Point>();
             int angleCount = rnd.Next(2, 6);
             List<int> xs = new List<int>();
             for(int i = 0; i< angleCount; i++)
@@ -63,16 +63,27 @@ namespace GenerateRandomPlygon
                 previousX = xs[i];
                 previousY = y;
             }
-            angles.Add(new Point(firstX, firstY));
+            angles.Add(new Point(firstX, firstY));*/
 
-            FillPolygon(angles, firstX, xs[xs.Count - 1]);
+            List<Point> angles = new List<Point>();
+            angles.Add(new Point(20, 20));
+            angles.Add(new Point(300, 100));
+            angles.Add(new Point(400, 400));
+            angles.Add(new Point(200, 450));
+            angles.Add(new Point(20, 20));
+            //FillPolygon(angles);
+            Random random = new Random();
+            Methods2D.Polygon(bitmap, random.Next(3, 10));
+            pictureBox1.Image = bitmap;
+
+            timer1.Stop();
         }
 
-        private void FillPolygon(List<Point> polygon, int minX, int maxX)
+        private void FillPolygon(List<Point> polygon)
         {
             Random rnd = new Random();
             var ys = new List<int>();
-            polygon.ForEach(i => ys.Add(i.Y));
+            polygon.ForEach(i => ys.Add(i.X));
             ys = ys.OrderBy(x => x).ToList();
             
             Dictionary<Point, Color> mapping = new Dictionary<Point, Color>();
@@ -81,7 +92,7 @@ namespace GenerateRandomPlygon
                 var color = Color.FromArgb(rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
                 mapping.Add(polygon[i], color);
             }
-            for(float j = ys[0] + 0.001f; j <= ys[ys.Count - 1]; j += 0.7f)
+            for(float j = ys[0]/* + 0.001f*/; j <= ys[ys.Count - 1]; j += /*0.97f*/1)
             {
                 ScanLine(mapping, j);
             }
@@ -96,39 +107,30 @@ namespace GenerateRandomPlygon
             var lineX = new Dictionary<float, Color>();
             for(int i = 0; i < mapping.Count; i++)
             {
-                Point p1 = new Point();
-                var p2 = new Point();
-                int x1 = 0;
-                int x2 = 0;
                 int next = 0;
-                if (i == mapping.Count - 1)
-                {
-                    next = 0;
-                }
-                else
-                {
-                    next = i + 1;
-                }
-                p1 = mapping.ElementAt(i).Key;
-                p2 = mapping.ElementAt(next).Key;
-                x1 = mapping.ElementAt(i).Key.X;
-                x2 = mapping.ElementAt(next).Key.X;
+                if (i == mapping.Count - 1) next = 0;
+                else next = i + 1;
+
+                var p1 = mapping.ElementAt(i).Key;
+                var p2 = mapping.ElementAt(next).Key;
+                var x1 = mapping.ElementAt(i).Key.Y;
+                var x2 = mapping.ElementAt(next).Key.Y;
                 var low = x1 > x2 ? x2 : x1;
                 var high = x1 > x2 ? x1 : x2;
-                var intersection = Methods2D.GetIntersectionPointOfTwoLines(p1, p2, new PointF(0, y),
-                                                                            new PointF(bitmap.Width - 1, y),
+                var intersection = Methods2D.GetIntersectionPointOfTwoLines(p1, p2, new PointF(y, 0),
+                                                                            new PointF(y, bitmap.Height-1),
                                                                             out var status);
 
-                if (intersection != null && status == 1 && intersection.X >= low && intersection.X <= high 
-                    && !lineX.Keys.Contains(intersection.X))
+                if (intersection != null && status == 1 && intersection.Y > low && intersection.Y <= high 
+                    && !lineX.Keys.Contains(intersection.Y))
                 {
                     double progress = 0;
                     if (x1 != x2)
                     {
-                        progress = (intersection.X - low) / Math.Abs(x2 - x1);
+                        progress = (intersection.Y - low) / Math.Abs(x2 - x1);
                     }
                     var color = GetInterpolateColor(mapping.ElementAt(i).Value, mapping.ElementAt(next).Value, progress);
-                    lineX.Add(intersection.X, color);
+                    lineX.Add(intersection.Y, color);
                 }
             }
 
@@ -137,11 +139,12 @@ namespace GenerateRandomPlygon
             {
                 if (i + 1 != xs.Count())
                 {
-                    //var color1 = xs.ElementAt(i).Value;
-                    //var color2 = xs.ElementAt(i + 1).Value;
-                    var color1 = Color.Red;
-                    var color2 = Color.Green;
-                    DrawSegment((int)Math.Round(xs.ElementAt(i).Key), (int)Math.Round(xs.ElementAt(i + 1).Key), (int)Math.Round(y), (int)Math.Round(y),
+                    var color1 = xs.ElementAt(i).Value;
+                    var color2 = xs.ElementAt(i + 1).Value;
+                    DrawSegment((int)Math.Round(y), (int)Math.Round(y),
+                        (int)Math.Round(xs.ElementAt(i).Key),
+                        (int)Math.Round(xs.ElementAt(i + 1).Key),
+                        
                     color1, color2);
                 }
             }
@@ -149,13 +152,14 @@ namespace GenerateRandomPlygon
 
         private Color GetInterpolateColor(Color color1, Color color2, double interpolation)
         {
-            Color newColor;
-            //int A = Clip((int)(color1.A * interpolation + color2.A * (1 - interpolation)));
-            int R = Clip((int)(color1.R * (1-interpolation) + color2.R * interpolation));
-            int G = Clip((int)(color1.G * (1-interpolation) + color2.G * interpolation));
-            int B = Clip((int)(color1.B * (1-interpolation) + color2.B * interpolation));
-            newColor = Color.FromArgb( R, G, B);
-            return newColor;
+            double dr = (color2.R - color1.R) * interpolation;
+            double dg = (color2.G - color1.G) * interpolation;
+            double db = (color2.B - color1.B) * interpolation;
+            int R = Clip((int)(color1.R + dr));
+            int G = Clip((int)(color1.G + dg));
+            int B = Clip((int)(color1.B + db));
+            var color = Color.FromArgb(R, G, B);
+            return color;
         }
         private int Clip(int num)
         {

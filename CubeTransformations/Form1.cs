@@ -22,7 +22,7 @@ namespace CubeTransformations
         double speedY = 0;
         double speedZ = 0;
 
-        ProectionType type = ProectionType.Parallel;
+        ProectionType type = ProectionType.Perspective;
 
         //Cube is positioned based on center
         Point Origin { get; set; }

@@ -24,12 +24,12 @@ namespace CubeTransformations
 
         public static (Point3D front, Point3D back, Point3D top, Point3D bottom, Point3D right, Point3D left) CalculateNormals(Point3D[] cubePoints)
         {
-            var frontNormal = GetNormalVector(cubePoints[0], cubePoints[1], cubePoints[2]);
-            var backNormal = GetNormalVector(cubePoints[7], cubePoints[6], cubePoints[5]);
-            var topNormal = GetNormalVector(cubePoints[1], cubePoints[5], cubePoints[6]);
-            var bottomNormal = GetNormalVector(cubePoints[4], cubePoints[0], cubePoints[3]);
-            var rightNormal = GetNormalVector(cubePoints[3], cubePoints[2], cubePoints[6]);
-            var leftNormal = GetNormalVector(cubePoints[4], cubePoints[5], cubePoints[1]);
+            var frontNormal = GetNormalVector(cubePoints[3], cubePoints[7], cubePoints[6]);
+            var backNormal = GetNormalVector(cubePoints[4], cubePoints[0], cubePoints[1]);
+            var topNormal = GetNormalVector(cubePoints[7], cubePoints[4], cubePoints[5]);
+            var bottomNormal = GetNormalVector(cubePoints[0], cubePoints[3], cubePoints[2]);
+            var rightNormal = GetNormalVector(cubePoints[0], cubePoints[4], cubePoints[7]);
+            var leftNormal = GetNormalVector(cubePoints[2], cubePoints[6], cubePoints[5]);
 
             /*Point3D[] normals = new Point3D[8];
 

@@ -134,7 +134,7 @@ namespace CubeTransformations
             bounds.Width += drawOrigin.X;
             bounds.Height += drawOrigin.Y;
             Camera light = new Camera();
-            light.Position = new Point3D(Width / 2 + 175, Height / 2, Depth / 2);
+            light.Position = new Point3D(Width / 2, Height / 2 + 175, Depth / 2);
             
             Bitmap tmpBmp = new Bitmap(bounds.Width, bounds.Height);
 
@@ -157,23 +157,24 @@ namespace CubeTransformations
 
             /*//Back Face
             Methods2D.DrawLine(tmpBmp, point2D[0], point2D[1], verticeColor[0], verticeColor[1]);
-            Methods2D.DrawLine(tmpBmp, point2D[1], point2D[2], verticeColor[1], verticeColor[2]);
-            Methods2D.DrawLine(tmpBmp, point2D[2], point2D[3], verticeColor[2], verticeColor[3]);
-            Methods2D.DrawLine(tmpBmp, point2D[3], point2D[0], verticeColor[3], verticeColor[0]);
+            Methods2D.DrawLine(tmpBmp, point2D[1], point2D[5], verticeColor[1], verticeColor[5]);
+            Methods2D.DrawLine(tmpBmp, point2D[5], point2D[4], verticeColor[5], verticeColor[4]);
+            Methods2D.DrawLine(tmpBmp, point2D[4], point2D[0], verticeColor[4], verticeColor[0]);
 
             //Front Face
-            Methods2D.DrawLine(tmpBmp, point2D[4], point2D[5], verticeColor[4], verticeColor[5]);
-            Methods2D.DrawLine(tmpBmp, point2D[5], point2D[6], verticeColor[5], verticeColor[6]);
+            Methods2D.DrawLine(tmpBmp, point2D[3], point2D[2], verticeColor[3], verticeColor[2]);
+            Methods2D.DrawLine(tmpBmp, point2D[2], point2D[6], verticeColor[2], verticeColor[6]);
             Methods2D.DrawLine(tmpBmp, point2D[6], point2D[7], verticeColor[6], verticeColor[7]);
-            Methods2D.DrawLine(tmpBmp, point2D[7], point2D[4], verticeColor[7], verticeColor[4]);
+            Methods2D.DrawLine(tmpBmp, point2D[7], point2D[3], verticeColor[7], verticeColor[3]);
 
             //Right Face
-            Methods2D.DrawLine(tmpBmp, point2D[0], point2D[4], verticeColor[0], verticeColor[4]);
-            Methods2D.DrawLine(tmpBmp, point2D[5], point2D[1], verticeColor[5], verticeColor[1]);
+            Methods2D.DrawLine(tmpBmp, point2D[7], point2D[4], verticeColor[7], verticeColor[4]);
+            Methods2D.DrawLine(tmpBmp, point2D[3], point2D[0], verticeColor[3], verticeColor[0]);
 
             //Left Face
-            Methods2D.DrawLine(tmpBmp, point2D[3], point2D[7], verticeColor[3], verticeColor[7]);
-            Methods2D.DrawLine(tmpBmp, point2D[6], point2D[2], verticeColor[6], verticeColor[2]);*/
+            Methods2D.DrawLine(tmpBmp, point2D[6], point2D[5], verticeColor[6], verticeColor[5]);
+            Methods2D.DrawLine(tmpBmp, point2D[2], point2D[1], verticeColor[2], verticeColor[1]);*/
+
             
 
             return tmpBmp;
@@ -202,45 +203,67 @@ namespace CubeTransformations
         {
 
             var normals = LightingLibrary.CalculateNormals(cubePoints);
-            if (normals.front.Z < 0)
-            {
-                Methods2D.FillPolygon(tmpBmp,
-                    new List<PointF> { point2D[0], point2D[1], point2D[2], point2D[3], point2D[0] },
-                    new List<Color>() { colors[0], colors[1], colors[2], colors[3], colors[0] });
-            }
-            if (normals.right.Z < 0)
-            {
-                Methods2D.FillPolygon(tmpBmp,
-                new List<PointF> { point2D[3], point2D[2], point2D[6], point2D[7], point2D[3] },
-                new List<Color>() { colors[3], colors[2], colors[6], colors[7], colors[3] });
-            }
-            if (normals.back.Z < 0)
-            {
-                Methods2D.FillPolygon(tmpBmp,
-                new List<PointF> { point2D[4], point2D[5], point2D[6], point2D[7], point2D[4] },
-                new List<Color>() { colors[4], colors[5], colors[6], colors[7], colors[4] });
-            }
-            if (normals.left.Z < 0)
-            {
-                Methods2D.FillPolygon(tmpBmp,
-                new List<PointF> { point2D[0], point2D[1], point2D[5], point2D[4], point2D[0] },
-                new List<Color>() { colors[0], colors[1], colors[5], colors[4], colors[0] });
-            }
-            if (normals.top.Z < 0)
-            {
-                Methods2D.FillPolygon(tmpBmp,
-                new List<PointF> { point2D[1], point2D[5], point2D[6], point2D[2], point2D[1] },
-                new List<Color>() { colors[1], colors[5], colors[6], colors[2], colors[1] });
-            }
-            if (normals.bottom.Z < 0)
-            {
-                Methods2D.FillPolygon(tmpBmp,
+
+                DrawWatchablePolygons(tmpBmp, normals.front,
+                    new List<PointF> { point2D[3], point2D[7], point2D[6], point2D[2], point2D[3] },
+                    new List<Color>() { colors[3], colors[7], colors[6], colors[2], colors[3] });
+
+                DrawWatchablePolygons(tmpBmp, normals.right,
                 new List<PointF> { point2D[0], point2D[4], point2D[7], point2D[3], point2D[0] },
                 new List<Color>() { colors[0], colors[4], colors[7], colors[3], colors[0] });
-            }
+
+                DrawWatchablePolygons(tmpBmp, normals.back,
+                new List<PointF> { point2D[1], point2D[5], point2D[4], point2D[0], point2D[1] },
+                new List<Color>() { colors[1], colors[5], colors[4], colors[0], colors[1] });
+            
+                DrawWatchablePolygons(tmpBmp, normals.left,
+                new List<PointF> { point2D[2], point2D[6], point2D[5], point2D[1], point2D[2] },
+                new List<Color>() { colors[2], colors[6], colors[5], colors[1], colors[2] });
+            
+                DrawWatchablePolygons(tmpBmp, normals.top,
+                new List<PointF> { point2D[7], point2D[4], point2D[5], point2D[6], point2D[7] },
+                new List<Color>() { colors[7], colors[4], colors[5], colors[6], colors[7] });
+
+                DrawWatchablePolygons(tmpBmp, normals.bottom,
+                new List<PointF> { point2D[0], point2D[3], point2D[2], point2D[1], point2D[0] },
+                new List<Color>() { colors[0], colors[3], colors[2], colors[1], colors[0] });
+
+
+            /*Methods2D.FillPolygon(tmpBmp,
+            new List<PointF> { point2D[3], point2D[7], point2D[6], point2D[2], point2D[3] },
+            new List<Color>() { colors[3], colors[7], colors[6], colors[2], colors[3] });
+
+            Methods2D.FillPolygon(tmpBmp,
+            new List<PointF> { point2D[0], point2D[4], point2D[7], point2D[3], point2D[0] },
+            new List<Color>() { colors[0], colors[4], colors[7], colors[3], colors[0] });
+
+            Methods2D.FillPolygon(tmpBmp,
+            new List<PointF> { point2D[1], point2D[5], point2D[4], point2D[0], point2D[1] },
+            new List<Color>() { colors[1], colors[5], colors[4], colors[0], colors[1] });
+
+            Methods2D.FillPolygon(tmpBmp,
+            new List<PointF> { point2D[2], point2D[6], point2D[5], point2D[1], point2D[2] },
+            new List<Color>() { colors[2], colors[6], colors[5], colors[1], colors[2] });
+
+            Methods2D.FillPolygon(tmpBmp,
+            new List<PointF> { point2D[7], point2D[4], point2D[5], point2D[6], point2D[7] },
+            new List<Color>() { colors[7], colors[4], colors[5], colors[6], colors[7] });
+
+            Methods2D.FillPolygon(tmpBmp,
+            new List<PointF> { point2D[0], point2D[3], point2D[2], point2D[1], point2D[0] },
+            new List<Color>() { colors[0], colors[3], colors[2], colors[1], colors[0] });*/
+
             return tmpBmp;
         }
 
+        public void DrawWatchablePolygons(Bitmap tmpBmp, Point3D normal, List<PointF> points, List<Color> colors)
+        {
+            var cos = normal.Z / Math.Sqrt(Math.Pow(normal.X,2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.Z, 2));
+            if (cos >= 0 && cos <= 1)
+            {
+                Methods2D.FillPolygon(tmpBmp, points, colors);
+            }
+        }
         
     }
 }

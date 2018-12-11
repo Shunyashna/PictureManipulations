@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PictureManipulationsLibrary
@@ -46,7 +47,8 @@ namespace PictureManipulationsLibrary
 
             for (int i = 0; i < verticeColor.Length; i++)
             {
-                verticeColor[i] = Methods2D.GetInterpolateColor(Color.Yellow, Color.Black, ((distances[i] - minDist) / (maxDist - minDist)));
+                var interpolation = (distances[i] - minDist) / (maxDist + 0.00001f - minDist);
+                verticeColor[i] = Methods2D.GetInterpolateColor(Color.Yellow, Color.Black, interpolation);
             }
             return verticeColor;
         }
@@ -246,7 +248,7 @@ namespace PictureManipulationsLibrary
         {
             Random rnd = new Random();
             var ys = new List<int>();
-            polygon.ForEach(i => ys.Add((int)i.Y));
+            polygon.ForEach(i => ys.Add((int)i.X));
             ys = ys.OrderBy(x => x).ToList();
 
             Dictionary<PointF, Color> mapping = new Dictionary<PointF, Color>();
@@ -260,15 +262,63 @@ namespace PictureManipulationsLibrary
             }
             for (float j = ys[0] + 0.001f; j <= ys[ys.Count - 1]; j += 0.7f)
             {
-                ScanLine(mapping, j, bitmap);
+                ScanLine(bitmap, mapping, j);
+            }
+        }
+        public static void ScanLine(Bitmap bitmap,Dictionary<PointF, Color> mapping, float x)
+        {
+            var lineX = new Dictionary<float, Color>();
+            for (int i = 0; i < mapping.Count; i++)
+            {
+                PointF p1 = new PointF();
+                var p2 = new PointF();
+                int x1 = 0;
+                int x2 = 0;
+                int next = 0;
+                if (i == mapping.Count - 1)
+                {
+                    next = 0;
+                }
+                else
+                {
+                    next = i + 1;
+                }
+                p1 = mapping.ElementAt(i).Key;
+                p2 = mapping.ElementAt(next).Key;
+                x1 = (int)mapping.ElementAt(i).Key.Y;
+                x2 = (int)mapping.ElementAt(next).Key.Y;
+                var low = x1 > x2 ? x2 : x1;
+                var high = x1 > x2 ? x1 : x2;
+                var intersection = Methods2D.GetIntersectionPointOfTwoLines(p1, p2, new PointF(x, 0),
+                                                                            new PointF(x, bitmap.Height - 1),
+                                                                            out var status);
+
+                if (intersection != null && status == 1 && intersection.Y >= low && intersection.Y <= high
+                    && !lineX.Keys.Contains(intersection.Y))
+                {
+                    double progress = 0;
+                    if (x1 != x2)
+                    {
+                        progress = (intersection.Y - low) / Math.Abs(x2 - x1);
+                    }
+                    var color = GetInterpolateColor(mapping.ElementAt(i).Value, mapping.ElementAt(next).Value, progress);
+                    lineX.Add(intersection.Y, color);
+                }
             }
 
-            /*for (int i = 0; i < polygon.Count - 1; i++)
+            var xs = lineX.OrderBy(y => y.Key);
+            for (int i = 0; i < xs.Count(); i += 2)
             {
-                DrawLine(bitmap, polygon[i], polygon[i + 1], Color.Red, Color.Red);
-            }*/
+                if (i + 1 != xs.Count())
+                {
+                    var color1 = xs.ElementAt(i).Value;
+                    var color2 = xs.ElementAt(i + 1).Value;
+                    DrawSegment(bitmap, (int)Math.Round(x), (int)Math.Round(x), (int)Math.Round(xs.ElementAt(i).Key), (int)Math.Round(xs.ElementAt(i + 1).Key),
+                    color1, color2);
+                }
+            }
         }
-        public static void ScanLine(Dictionary<PointF, Color> mapping, float y, Bitmap bitmap)
+        /*public static void ScanLine(Dictionary<PointF, Color> mapping, float y, Bitmap bitmap)
         {
             var lineX = new Dictionary<float, Color>();
             for (int i = 0; i < mapping.Count; i++)
@@ -322,6 +372,206 @@ namespace PictureManipulationsLibrary
                     color1, color2);
                 }
             }
+        }*/
+
+        private static int GetRandomX(int rangeX)
+        {
+            Random random = new Random();
+            return random.Next(2, rangeX - 2);
+        }
+
+        //У будет генерировать от 2 до границы бокса-2
+        private static int GetRandomY(int rangeY)
+        {
+            Random random = new Random();
+            return random.Next(2, rangeY - 2);
+        }
+
+        //рандомная генерация цвета
+        private static Color GetRandomColor()
+        {
+            Random random = new Random();
+            Thread.Sleep(1);
+            return Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
+        }
+
+        //проверка
+        private static int Sign(int x)
+        {
+            return (x > 0) ? 1 : (x < 0) ? -1 : 0;
+        }
+
+
+        //линии
+        private static List<Pixel> DrawLine(Bitmap bitmap, int x1, int y1, Color color1, int x2, int y2, Color color2)
+        {
+            List<Point> points = new List<Point>();
+            int pdx, pdy;
+            int element, pelement;
+
+            int dx = x2 - x1;
+            int dy = y2 - y1;
+
+            if (Math.Abs(dx) > Math.Abs(dy))
+            {
+                pdx = Sign(dx);
+                pdy = 0;
+                element = Math.Abs(dx);
+                pelement = Math.Abs(dy);
+            }
+            else
+            {
+                pdx = 0;
+                pdy = Sign(dy);
+                element = Math.Abs(dy);
+                pelement = Math.Abs(dx);
+            }
+
+            int x = x1;
+            int y = y1;
+            int e = element / 2;
+            points.Add(new Point(x, y));
+
+            for (int i = 0; i < element; i++)
+            {
+                e -= pelement;
+                if (e < 0)
+                {
+                    e += element;
+                    x += Sign(dx);
+                    y += Sign(dy);
+                }
+                else
+                {
+                    x += pdx;
+                    y += pdy;
+                }
+
+                points.Add(new Point(x, y));
+            }
+            List<Pixel> pixels = new List<Pixel>();
+
+            //градиент
+            double dr = (double)(color2.R - color1.R) / points.Count;
+            double dg = (double)(color2.G - color1.G) / points.Count;
+            double db = (double)(color2.B - color1.B) / points.Count;
+            Color color = color1;
+            for (int i = 0; i < points.Count; i++)
+            {
+                color = Color.FromArgb(Convert.ToInt32(color1.R + dr * i), Convert.ToInt32(color1.G + dg * i), Convert.ToInt32(color1.B + db * i));
+                pixels.Add(new Pixel(points[i].X, points[i].Y, color));
+                bitmap.SetPixel(points[i].X, points[i].Y, color);
+            }
+            return pixels;
+        }
+
+        //многоугольник
+        public static void Polygon(Bitmap bitmap, int pointNum)
+        {
+            Random random = new Random();
+            //начальная точка
+            Pixel pixelFirst = new Pixel(GetRandomX(bitmap.Width - 2), GetRandomY(bitmap.Height - 2), GetRandomColor());
+            //конечная точка
+            Pixel pixelEnd = new Pixel(random.Next(pixelFirst.X + 1, bitmap.Width-2), pixelFirst.Y, GetRandomColor());
+            //точки, которые нужно сгенерировать - начальная и конечная точки
+            pointNum -= 2;
+
+            //расстояние от начальной до конечной точки
+            int line = pixelEnd.X - pixelFirst.X;
+            int range;
+
+            if ((pointNum - 1) == 0)
+            {
+                range = line;
+            }
+            else
+            {
+                range = line / pointNum;
+            }
+
+            List<Pixel> pixels = new List<Pixel>();
+            List<Pixel> abovePixels = new List<Pixel>();
+            List<Pixel> underPixels = new List<Pixel>();
+
+            int curRang = pixelFirst.X;
+            for (int i = 0; i < pointNum; i++)
+            {
+                //генерация x
+                int x = random.Next(curRang, curRang + range);
+                int y;
+                //генерация у
+                if (i % 2 == 0)
+                {
+                    y = random.Next(1, pixelFirst.Y - 1);
+                    abovePixels.Add(new Pixel(x, y, GetRandomColor()));
+                }
+                else
+                {
+                    y = random.Next(pixelFirst.Y - 1, bitmap.Height-2 - 1);
+                    underPixels.Add(new Pixel(x, y, GetRandomColor()));
+                }
+                curRang += range;
+            }
+
+            //все точки 
+            pixels.AddRange(abovePixels);
+            pixels.Add(pixelEnd);
+            underPixels.Sort((x,y) => x.X.CompareTo(y.X)*-1);
+            pixels.AddRange(underPixels);
+            pixels.Add(pixelFirst);
+
+
+            List<Pixel> pixelSet = new List<Pixel>();
+            List<Pixel> pixelAboveSet = new List<Pixel>();
+            List<Pixel> pixelUnderSet = new List<Pixel>();
+            Pixel curPoint = pixelFirst;
+            for (int i = 0; i < pixels.Count; i++)
+            {
+                if (i < abovePixels.Count + 1)
+                {
+
+                    foreach (Pixel p in DrawLine(bitmap, curPoint.X, curPoint.Y, curPoint.Color, pixels[i].X, pixels[i].Y, pixels[i].Color))
+                    {
+                        pixelSet.Add(p);
+                        //точки выше линии
+                        pixelAboveSet.Add(p);
+                    }
+                }
+                else
+                {
+
+                    foreach (Pixel p in DrawLine(bitmap, curPoint.X, curPoint.Y, curPoint.Color, pixels[i].X, pixels[i].Y, pixels[i].Color))
+                    {
+                        pixelSet.Add(p);
+                        //точки ниже линии
+                        pixelUnderSet.Add(p);
+                    }
+                }
+                curPoint = pixels[i];
+            }
+
+            pixelUnderSet.Sort((x, y) => x.X.CompareTo(y.X)*-1);
+            for (int i = pixelFirst.X; i < pixelEnd.X; i++)
+            {
+                Pixel pixel1 = pixelAboveSet.FirstOrDefault(x => x.X == i);
+                Pixel pixel2 = pixelUnderSet.FirstOrDefault(x => x.X == i);
+                DrawLine(bitmap, pixel1.X, pixel1.Y, pixel1.Color, pixel2.X, pixel2.Y, pixel2.Color);
+            }
+
+        }
+    }
+
+    internal class Pixel
+    {
+        public int X;
+        public int Y;
+        public Color Color;
+
+        public Pixel(int x, int y, Color color)
+        {
+            X = x;
+            Y = y;
+            Color = color;
         }
     }
 }
