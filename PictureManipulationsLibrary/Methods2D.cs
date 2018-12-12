@@ -244,156 +244,6 @@ namespace PictureManipulationsLibrary
             bitmap.UnlockBits(data);
         }
 
-        public static void FillPolygon(Bitmap bitmap, List<PointF> polygon, List<Color> colors)
-        {
-            Random rnd = new Random();
-            var ys = new List<int>();
-            polygon.ForEach(i => ys.Add((int)i.X));
-            ys = ys.OrderBy(x => x).ToList();
-
-            Dictionary<PointF, Color> mapping = new Dictionary<PointF, Color>();
-            for (int i = 0; i < ys.Count - 1; i++)
-            {
-                if (!mapping.Keys.Contains(polygon[i]))
-                {
-                    //var color = Color.FromArgb(rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
-                    mapping.Add(polygon[i], colors[i]);
-                }
-            }
-            for (float j = ys[0] + 0.001f; j <= ys[ys.Count - 1]; j += 0.7f)
-            {
-                ScanLine(bitmap, mapping, j);
-            }
-        }
-        public static void ScanLine(Bitmap bitmap,Dictionary<PointF, Color> mapping, float x)
-        {
-            var lineX = new Dictionary<float, Color>();
-            for (int i = 0; i < mapping.Count; i++)
-            {
-                PointF p1 = new PointF();
-                var p2 = new PointF();
-                int x1 = 0;
-                int x2 = 0;
-                int next = 0;
-                if (i == mapping.Count - 1)
-                {
-                    next = 0;
-                }
-                else
-                {
-                    next = i + 1;
-                }
-                p1 = mapping.ElementAt(i).Key;
-                p2 = mapping.ElementAt(next).Key;
-                x1 = (int)mapping.ElementAt(i).Key.Y;
-                x2 = (int)mapping.ElementAt(next).Key.Y;
-                var low = x1 > x2 ? x2 : x1;
-                var high = x1 > x2 ? x1 : x2;
-                var intersection = Methods2D.GetIntersectionPointOfTwoLines(p1, p2, new PointF(x, 0),
-                                                                            new PointF(x, bitmap.Height - 1),
-                                                                            out var status);
-
-                if (intersection != null && status == 1 && intersection.Y >= low && intersection.Y <= high
-                    && !lineX.Keys.Contains(intersection.Y))
-                {
-                    double progress = 0;
-                    if (x1 != x2)
-                    {
-                        progress = (intersection.Y - low) / Math.Abs(x2 - x1);
-                    }
-                    var color = GetInterpolateColor(mapping.ElementAt(i).Value, mapping.ElementAt(next).Value, progress);
-                    lineX.Add(intersection.Y, color);
-                }
-            }
-
-            var xs = lineX.OrderBy(y => y.Key);
-            for (int i = 0; i < xs.Count(); i += 2)
-            {
-                if (i + 1 != xs.Count())
-                {
-                    var color1 = xs.ElementAt(i).Value;
-                    var color2 = xs.ElementAt(i + 1).Value;
-                    DrawSegment(bitmap, (int)Math.Round(x), (int)Math.Round(x), (int)Math.Round(xs.ElementAt(i).Key), (int)Math.Round(xs.ElementAt(i + 1).Key),
-                    color1, color2);
-                }
-            }
-        }
-        /*public static void ScanLine(Dictionary<PointF, Color> mapping, float y, Bitmap bitmap)
-        {
-            var lineX = new Dictionary<float, Color>();
-            for (int i = 0; i < mapping.Count; i++)
-            {
-                PointF p1 = new PointF();
-                var p2 = new PointF();
-                int x1 = 0;
-                int x2 = 0;
-                int next = 0;
-                if (i == mapping.Count - 1)
-                {
-                    next = 0;
-                }
-                else
-                {
-                    next = i + 1;
-                }
-                p1 = mapping.ElementAt(i).Key;
-                p2 = mapping.ElementAt(next).Key;
-                x1 = (int)mapping.ElementAt(i).Key.X;
-                x2 = (int)mapping.ElementAt(next).Key.X;
-                var low = x1 > x2 ? x2 : x1;
-                var high = x1 > x2 ? x1 : x2;
-                var intersection = Methods2D.GetIntersectionPointOfTwoLines(p1, p2, new PointF(0, y),
-                                                                            new PointF(bitmap.Width - 1, y),
-                                                                            out var status);
-
-                if (intersection != null && status == 1 && intersection.X >= low && intersection.X <= high
-                    && !lineX.Keys.Contains(intersection.X))
-                {
-                    double progress = 0;
-                    if (x1 != x2)
-                    {
-                        progress = (intersection.X - low) / Math.Abs(x2 - x1);
-                    }
-                    var color = GetInterpolateColor(mapping.ElementAt(i).Value, mapping.ElementAt(next).Value, progress);
-                    lineX.Add(intersection.X, color);
-                }
-            }
-
-            var xs = lineX.OrderBy(x => x.Key);
-            for (int i = 0; i < xs.Count(); i += 2)
-            {
-                if (i + 1 != xs.Count())
-                {
-                    var color1 = xs.ElementAt(i).Value;
-                    var color2 = xs.ElementAt(i + 1).Value;
-                    //var color1 = Color.Red;
-                    //var color2 = Color.Black;
-                    DrawSegment(bitmap, (int)Math.Round(xs.ElementAt(i).Key), (int)Math.Round(xs.ElementAt(i + 1).Key), (int)Math.Round(y), (int)Math.Round(y),
-                    color1, color2);
-                }
-            }
-        }*/
-
-        private static int GetRandomX(int rangeX)
-        {
-            Random random = new Random();
-            return random.Next(2, rangeX - 2);
-        }
-
-        //У будет генерировать от 2 до границы бокса-2
-        private static int GetRandomY(int rangeY)
-        {
-            Random random = new Random();
-            return random.Next(2, rangeY - 2);
-        }
-
-        //рандомная генерация цвета
-        private static Color GetRandomColor()
-        {
-            Random random = new Random();
-            Thread.Sleep(1);
-            return Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
-        }
 
         //проверка
         private static int Sign(int x)
@@ -464,100 +314,28 @@ namespace PictureManipulationsLibrary
             }
             return pixels;
         }
-
-        //многоугольник
-        public static void Polygon(Bitmap bitmap, int pointNum)
+        public static void FillPolygon(Bitmap bitmap, List<Pixel> polygon)
         {
-            Random random = new Random();
-            //начальная точка
-            Pixel pixelFirst = new Pixel(GetRandomX(bitmap.Width - 2), GetRandomY(bitmap.Height - 2), GetRandomColor());
-            //конечная точка
-            Pixel pixelEnd = new Pixel(random.Next(pixelFirst.X + 1, bitmap.Width-2), pixelFirst.Y, GetRandomColor());
-            //точки, которые нужно сгенерировать - начальная и конечная точки
-            pointNum -= 2;
-
-            //расстояние от начальной до конечной точки
-            int line = pixelEnd.X - pixelFirst.X;
-            int range;
-
-            if ((pointNum - 1) == 0)
-            {
-                range = line;
-            }
-            else
-            {
-                range = line / pointNum;
-            }
-
             List<Pixel> pixels = new List<Pixel>();
-            List<Pixel> abovePixels = new List<Pixel>();
-            List<Pixel> underPixels = new List<Pixel>();
-
-            int curRang = pixelFirst.X;
-            for (int i = 0; i < pointNum; i++)
+            for (int i = 0; i < polygon.Count - 1; i++)
             {
-                //генерация x
-                int x = random.Next(curRang, curRang + range);
-                int y;
-                //генерация у
-                if (i % 2 == 0)
-                {
-                    y = random.Next(1, pixelFirst.Y - 1);
-                    abovePixels.Add(new Pixel(x, y, GetRandomColor()));
-                }
-                else
-                {
-                    y = random.Next(pixelFirst.Y - 1, bitmap.Height-2 - 1);
-                    underPixels.Add(new Pixel(x, y, GetRandomColor()));
-                }
-                curRang += range;
+                var p1 = polygon[i];
+                var p2 = polygon[i + 1];
+                var linePixels = DrawLine(bitmap, p1.X, p1.Y, p1.Color, p2.X, p2.Y, p2.Color);
+                pixels.AddRange(linePixels);
             }
-
-            //все точки 
-            pixels.AddRange(abovePixels);
-            pixels.Add(pixelEnd);
-            underPixels.Sort((x,y) => x.X.CompareTo(y.X)*-1);
-            pixels.AddRange(underPixels);
-            pixels.Add(pixelFirst);
-
-
-            List<Pixel> pixelSet = new List<Pixel>();
-            List<Pixel> pixelAboveSet = new List<Pixel>();
-            List<Pixel> pixelUnderSet = new List<Pixel>();
-            Pixel curPoint = pixelFirst;
-            for (int i = 0; i < pixels.Count; i++)
+            polygon.Sort((i, j) => i.X.CompareTo(j.X));
+            int minX = polygon[0].X;
+            int maxX = polygon[polygon.Count - 1].X;
+            for (int i = minX; i < maxX; i++)
             {
-                if (i < abovePixels.Count + 1)
+                var ys = pixels.Where(p => p.X == i).ToList();
+
+                for (int j = 0; j < ys.Count - 1; j++)
                 {
-
-                    foreach (Pixel p in DrawLine(bitmap, curPoint.X, curPoint.Y, curPoint.Color, pixels[i].X, pixels[i].Y, pixels[i].Color))
-                    {
-                        pixelSet.Add(p);
-                        //точки выше линии
-                        pixelAboveSet.Add(p);
-                    }
+                    DrawLine(bitmap, ys[j].X, ys[j].Y, ys[j].Color, ys[j + 1].X, ys[j + 1].Y, ys[j + 1].Color);
                 }
-                else
-                {
-
-                    foreach (Pixel p in DrawLine(bitmap, curPoint.X, curPoint.Y, curPoint.Color, pixels[i].X, pixels[i].Y, pixels[i].Color))
-                    {
-                        pixelSet.Add(p);
-                        //точки ниже линии
-                        pixelUnderSet.Add(p);
-                    }
-                }
-                curPoint = pixels[i];
             }
-
-            pixelUnderSet.Sort((x, y) => x.X.CompareTo(y.X)*-1);
-            for (int i = pixelFirst.X; i < pixelEnd.X; i++)
-            {
-                Pixel pixel1 = pixelAboveSet.FirstOrDefault(x => x.X == i);
-                Pixel pixel2 = pixelUnderSet.FirstOrDefault(x => x.X == i);
-                DrawLine(bitmap, pixel1.X, pixel1.Y, pixel1.Color, pixel2.X, pixel2.Y, pixel2.Color);
-            }
-
         }
     }
 

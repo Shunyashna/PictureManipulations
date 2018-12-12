@@ -228,31 +228,6 @@ namespace CubeTransformations
                 new List<PointF> { point2D[0], point2D[3], point2D[2], point2D[1], point2D[0] },
                 new List<Color>() { colors[0], colors[3], colors[2], colors[1], colors[0] });
 
-
-            /*Methods2D.FillPolygon(tmpBmp,
-            new List<PointF> { point2D[3], point2D[7], point2D[6], point2D[2], point2D[3] },
-            new List<Color>() { colors[3], colors[7], colors[6], colors[2], colors[3] });
-
-            Methods2D.FillPolygon(tmpBmp,
-            new List<PointF> { point2D[0], point2D[4], point2D[7], point2D[3], point2D[0] },
-            new List<Color>() { colors[0], colors[4], colors[7], colors[3], colors[0] });
-
-            Methods2D.FillPolygon(tmpBmp,
-            new List<PointF> { point2D[1], point2D[5], point2D[4], point2D[0], point2D[1] },
-            new List<Color>() { colors[1], colors[5], colors[4], colors[0], colors[1] });
-
-            Methods2D.FillPolygon(tmpBmp,
-            new List<PointF> { point2D[2], point2D[6], point2D[5], point2D[1], point2D[2] },
-            new List<Color>() { colors[2], colors[6], colors[5], colors[1], colors[2] });
-
-            Methods2D.FillPolygon(tmpBmp,
-            new List<PointF> { point2D[7], point2D[4], point2D[5], point2D[6], point2D[7] },
-            new List<Color>() { colors[7], colors[4], colors[5], colors[6], colors[7] });
-
-            Methods2D.FillPolygon(tmpBmp,
-            new List<PointF> { point2D[0], point2D[3], point2D[2], point2D[1], point2D[0] },
-            new List<Color>() { colors[0], colors[3], colors[2], colors[1], colors[0] });*/
-
             return tmpBmp;
         }
 
@@ -261,7 +236,12 @@ namespace CubeTransformations
             var cos = normal.Z / Math.Sqrt(Math.Pow(normal.X,2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.Z, 2));
             if (cos >= 0 && cos <= 1)
             {
-                Methods2D.FillPolygon(tmpBmp, points, colors);
+                List<Pixel> pixels = new List<Pixel>();
+                for(int i = 0; i < points.Count; i++)
+                {
+                    pixels.Add(new Pixel((int)points[i].X, (int)points[i].Y, colors[i]));
+                }
+                Methods2D.FillPolygon(tmpBmp, pixels);
             }
         }
         
