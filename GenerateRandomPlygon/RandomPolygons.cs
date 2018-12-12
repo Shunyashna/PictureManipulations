@@ -65,90 +65,116 @@ namespace GenerateRandomPlygon
             }
             angles.Add(new Point(firstX, firstY));*/
 
-            List<Point> angles = new List<Point>();
-            angles.Add(new Point(20, 20));
-            angles.Add(new Point(300, 100));
-            angles.Add(new Point(400, 400));
-            angles.Add(new Point(200, 450));
-            angles.Add(new Point(20, 20));
+            List<Pixel> angles = new List<Pixel>();
+            angles.Add(new Pixel(20, 20, Color.Red));
+            angles.Add(new Pixel(300, 100, Color.Purple));
+            angles.Add(new Pixel(400, 400, Color.Blue));
+            angles.Add(new Pixel(200, 450, Color.Green));
+            angles.Add(new Pixel(20, 20, Color.Red));
             //FillPolygon(angles);
             Random random = new Random();
-            Methods2D.Polygon(bitmap, random.Next(3, 10));
+            //Methods2D.Polygon(bitmap, random.Next(3, 10));
+            FillPolygon(bitmap, angles);
             pictureBox1.Image = bitmap;
 
             timer1.Stop();
         }
 
-        private void FillPolygon(List<Point> polygon)
+        public void FillPolygon(Bitmap bitmap, List<Pixel> polygon)
         {
-            Random rnd = new Random();
-            var ys = new List<int>();
-            polygon.ForEach(i => ys.Add(i.X));
-            ys = ys.OrderBy(x => x).ToList();
-            
-            Dictionary<Point, Color> mapping = new Dictionary<Point, Color>();
-            for(int i = 0; i< ys.Count - 1; i++)
-            {
-                var color = Color.FromArgb(rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
-                mapping.Add(polygon[i], color);
-            }
-            for(float j = ys[0]/* + 0.001f*/; j <= ys[ys.Count - 1]; j += /*0.97f*/1)
-            {
-                ScanLine(mapping, j);
-            }
-
+            List<Pixel> pixels = new List<Pixel>();
             for(int i = 0; i < polygon.Count - 1; i++)
             {
-                DrawSegment(polygon[i].X, polygon[i + 1].X, polygon[i].Y, polygon[i + 1].Y, Color.Red, Color.Red);
+                var p1 = polygon[i];
+                var p2 = polygon[i + 1];
+                var linePixels = Methods2D.DrawLine(bitmap, p1.X, p1.Y, p1.Color, p2.X, p2.Y, p2.Color);
+                pixels.AddRange(linePixels);
             }
-        }
-        public void ScanLine(Dictionary<Point, Color> mapping, float y)
-        {
-            var lineX = new Dictionary<float, Color>();
-            for(int i = 0; i < mapping.Count; i++)
+            polygon.Sort((i, j) => i.X.CompareTo(j.X));
+            int minX = polygon[0].X;
+            int maxX = polygon[polygon.Count - 1].X;
+            for (int i = minX; i < maxX; i++)
             {
-                int next = 0;
-                if (i == mapping.Count - 1) next = 0;
-                else next = i + 1;
-
-                var p1 = mapping.ElementAt(i).Key;
-                var p2 = mapping.ElementAt(next).Key;
-                var x1 = mapping.ElementAt(i).Key.Y;
-                var x2 = mapping.ElementAt(next).Key.Y;
-                var low = x1 > x2 ? x2 : x1;
-                var high = x1 > x2 ? x1 : x2;
-                var intersection = Methods2D.GetIntersectionPointOfTwoLines(p1, p2, new PointF(y, 0),
-                                                                            new PointF(y, bitmap.Height-1),
-                                                                            out var status);
-
-                if (intersection != null && status == 1 && intersection.Y > low && intersection.Y <= high 
-                    && !lineX.Keys.Contains(intersection.Y))
-                {
-                    double progress = 0;
-                    if (x1 != x2)
-                    {
-                        progress = (intersection.Y - low) / Math.Abs(x2 - x1);
-                    }
-                    var color = GetInterpolateColor(mapping.ElementAt(i).Value, mapping.ElementAt(next).Value, progress);
-                    lineX.Add(intersection.Y, color);
-                }
-            }
-
-            var xs = lineX.OrderBy(x => x.Key);
-            for (int i = 0; i < xs.Count(); i += 2)
-            {
-                if (i + 1 != xs.Count())
-                {
-                    var color1 = xs.ElementAt(i).Value;
-                    var color2 = xs.ElementAt(i + 1).Value;
-                    DrawSegment((int)Math.Round(y), (int)Math.Round(y),
-                        (int)Math.Round(xs.ElementAt(i).Key),
-                        (int)Math.Round(xs.ElementAt(i + 1).Key),
-                        
-                    color1, color2);
+                var ys = pixels.Where(p => p.X == i).ToList();
+                
+                for (int j = 0; j < ys.Count - 1; j++)
+                { 
+                    Methods2D.DrawLine(bitmap, ys[j].X, ys[j].Y, ys[j].Color, ys[j + 1].X, ys[j + 1].Y, ys[j + 1].Color);
                 }
             }
         }
+        
+
+        //private void FillPolygon(List<Point> polygon)
+        //{
+        //    Random rnd = new Random();
+        //    var ys = new List<int>();
+        //    polygon.ForEach(i => ys.Add(i.X));
+        //    ys = ys.OrderBy(x => x).ToList();
+
+        //    Dictionary<Point, Color> mapping = new Dictionary<Point, Color>();
+        //    for(int i = 0; i< ys.Count - 1; i++)
+        //    {
+        //        var color = Color.FromArgb(rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
+        //        mapping.Add(polygon[i], color);
+        //    }
+        //    for(float j = ys[0]/* + 0.001f*/; j <= ys[ys.Count - 1]; j += /*0.97f*/1)
+        //    {
+        //        ScanLine(mapping, j);
+        //    }
+
+        //    for(int i = 0; i < polygon.Count - 1; i++)
+        //    {
+        //        DrawSegment(polygon[i].X, polygon[i + 1].X, polygon[i].Y, polygon[i + 1].Y, Color.Red, Color.Red);
+        //    }
+        //}
+        //public void ScanLine(Dictionary<Point, Color> mapping, float y)
+        //{
+        //    var lineX = new Dictionary<float, Color>();
+        //    for(int i = 0; i < mapping.Count; i++)
+        //    {
+        //        int next = 0;
+        //        if (i == mapping.Count - 1) next = 0;
+        //        else next = i + 1;
+
+        //        var p1 = mapping.ElementAt(i).Key;
+        //        var p2 = mapping.ElementAt(next).Key;
+        //        var x1 = mapping.ElementAt(i).Key.Y;
+        //        var x2 = mapping.ElementAt(next).Key.Y;
+        //        var low = x1 > x2 ? x2 : x1;
+        //        var high = x1 > x2 ? x1 : x2;
+        //        var intersection = Methods2D.GetIntersectionPointOfTwoLines(p1, p2, new PointF(y, 0),
+        //                                                                    new PointF(y, bitmap.Height-1),
+        //                                                                    out var status);
+
+        //        if (intersection != null && status == 1 && intersection.Y > low && intersection.Y <= high 
+        //            && !lineX.Keys.Contains(intersection.Y))
+        //        {
+        //            double progress = 0;
+        //            if (x1 != x2)
+        //            {
+        //                progress = (intersection.Y - low) / Math.Abs(x2 - x1);
+        //            }
+        //            var color = GetInterpolateColor(mapping.ElementAt(i).Value, mapping.ElementAt(next).Value, progress);
+        //            lineX.Add(intersection.Y, color);
+        //        }
+        //    }
+
+        //    var xs = lineX.OrderBy(x => x.Key);
+        //    for (int i = 0; i < xs.Count(); i += 2)
+        //    {
+        //        if (i + 1 != xs.Count())
+        //        {
+        //            var color1 = xs.ElementAt(i).Value;
+        //            var color2 = xs.ElementAt(i + 1).Value;
+        //            DrawSegment((int)Math.Round(y), (int)Math.Round(y),
+        //                (int)Math.Round(xs.ElementAt(i).Key),
+        //                (int)Math.Round(xs.ElementAt(i + 1).Key),
+
+        //            color1, color2);
+        //        }
+        //    }
+        //}
 
         private Color GetInterpolateColor(Color color1, Color color2, double interpolation)
         {

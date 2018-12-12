@@ -205,8 +205,8 @@ namespace CubeTransformations
             var normals = LightingLibrary.CalculateNormals(cubePoints);
 
                 DrawWatchablePolygons(tmpBmp, normals.front,
-                    new List<PointF> { point2D[3], point2D[7], point2D[6], point2D[2], point2D[3] },
-                    new List<Color>() { colors[3], colors[7], colors[6], colors[2], colors[3] });
+                new List<PointF> { point2D[3], point2D[7], point2D[6], point2D[2], point2D[3] },
+                new List<Color>() { colors[3], colors[7], colors[6], colors[2], colors[3] });
 
                 DrawWatchablePolygons(tmpBmp, normals.right,
                 new List<PointF> { point2D[0], point2D[4], point2D[7], point2D[3], point2D[0] },

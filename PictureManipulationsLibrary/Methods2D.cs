@@ -403,7 +403,7 @@ namespace PictureManipulationsLibrary
 
 
         //линии
-        private static List<Pixel> DrawLine(Bitmap bitmap, int x1, int y1, Color color1, int x2, int y2, Color color2)
+        public static List<Pixel> DrawLine(Bitmap bitmap, int x1, int y1, Color color1, int x2, int y2, Color color2)
         {
             List<Point> points = new List<Point>();
             int pdx, pdy;
@@ -561,7 +561,7 @@ namespace PictureManipulationsLibrary
         }
     }
 
-    internal class Pixel
+    public class Pixel
     {
         public int X;
         public int Y;
