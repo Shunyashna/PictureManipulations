@@ -2,6 +2,7 @@
 using PictureManipulationsLibrary;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,41 +33,7 @@ namespace CubeTransformations
             normals.Bottom = GetNormalVector(cubePoints[0], cubePoints[3], cubePoints[2]);
             normals.Right = GetNormalVector(cubePoints[0], cubePoints[4], cubePoints[7]);
             normals.Left = GetNormalVector(cubePoints[2], cubePoints[6], cubePoints[5]);
-
-            /*Point3D[] normals = new Point3D[8];
-
-            normals[0] = new Point3D((frontNormal.X + leftNormal.X + bottomNormal.X)/3,
-                                 (frontNormal.Y + leftNormal.Y + bottomNormal.Y) / 3,
-                                 (frontNormal.Z + leftNormal.Z + bottomNormal.Z) / 3);
-
-            normals[1] = new Point3D((frontNormal.X + leftNormal.X + topNormal.X) / 3,
-                                 (frontNormal.Y + leftNormal.Y + topNormal.Y) / 3,
-                                 (frontNormal.Z + leftNormal.Z + topNormal.Z) / 3);
-
-            normals[2] = new Point3D((frontNormal.X + rightNormal.X + topNormal.X) / 3,
-                                 (frontNormal.Y + rightNormal.Y + topNormal.Y) / 3,
-                                 (frontNormal.Z + rightNormal.Z + topNormal.Z) / 3);
-
-            normals[3] = new Point3D((frontNormal.X + rightNormal.X + bottomNormal.X) / 3,
-                                 (frontNormal.Y + rightNormal.Y + bottomNormal.Y) / 3,
-                                 (frontNormal.Z + rightNormal.Z + bottomNormal.Z) / 3);
-
-            normals[4] = new Point3D((backNormal.X + leftNormal.X + bottomNormal.X) / 3,
-                                 (backNormal.Y + leftNormal.Y + bottomNormal.Y) / 3,
-                                 (backNormal.Z + leftNormal.Z + bottomNormal.Z) / 3);
-
-            normals[5] = new Point3D((backNormal.X + leftNormal.X + topNormal.X) / 3,
-                                 (backNormal.Y + leftNormal.Y + topNormal.Y) / 3,
-                                 (backNormal.Z + leftNormal.Z + topNormal.Z) / 3);
-
-            normals[6] = new Point3D((backNormal.X + rightNormal.X + topNormal.X) / 3,
-                                 (backNormal.Y + rightNormal.Y + topNormal.Y) / 3,
-                                 (backNormal.Z + rightNormal.Z + topNormal.Z) / 3);
-
-            normals[7] = new Point3D((backNormal.X + rightNormal.X + bottomNormal.X) / 3,
-                                 (backNormal.Y + rightNormal.Y + bottomNormal.Y) / 3,
-                                 (backNormal.Z + rightNormal.Z + bottomNormal.Z) / 3);
-            return normals;*/
+            
             return normals;
         }
 
@@ -83,7 +50,66 @@ namespace CubeTransformations
             var xR = (2 * normal.X * (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) / Math.Sqrt(Math.Pow(normal.X, 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2))) - light.X;
             var yR = (2 * normal.Y * (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) / Math.Sqrt(Math.Pow(normal.X, 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2))) - light.Y;
             var zR = (2 * normal.Z * (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) / Math.Sqrt(Math.Pow(normal.X, 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2))) - light.Z;
+
+
+            var cosA = (xR * camera.X + yR * camera.Y + xR * camera.Z) /
+                (Math.Sqrt(Math.Pow(xR, 2) + Math.Pow(yR, 2) + Math.Pow(zR, 2)) *
+                Math.Sqrt(Math.Pow(camera.X, 2) + Math.Pow(camera.Y, 2) + Math.Pow(camera.Z, 2)));
+            return cosA;
         }
+
+        public void GetIntense(Point3D[] cubePoints, Point3D camera, Point3D light)
+        {
+            var normals = CalculateNormals(cubePoints);
+            Point3D[] verticeNormals = new Point3D[8];
+
+            verticeNormals[0] = new Point3D((normals.Front.X + normals.Left.X + normals.Bottom.X) / 3,
+                                            (normals.Front.Y + normals.Left.Y + normals.Bottom.Y) / 3,
+                                            (normals.Front.Z + normals.Left.Z + normals.Bottom.Z) / 3);
+
+            verticeNormals[1] = new Point3D((normals.Front.X + normals.Left.X + normals.Top.X) / 3,
+                                            (normals.Front.Y + normals.Left.Y + normals.Top.Y) / 3,
+                                            (normals.Front.Z + normals.Left.Z + normals.Top.Z) / 3);
+
+            verticeNormals[2] = new Point3D((normals.Front.X + normals.Right.X + normals.Top.X) / 3,
+                                            (normals.Front.Y + normals.Right.Y + normals.Top.Y) / 3,
+                                            (normals.Front.Z + normals.Right.Z + normals.Top.Z) / 3);
+
+            verticeNormals[3] = new Point3D((normals.Front.X + normals.Right.X + normals.Bottom.X) / 3,
+                                            (normals.Front.Y + normals.Right.Y + normals.Bottom.Y) / 3,
+                                            (normals.Front.Z + normals.Right.Z + normals.Bottom.Z) / 3);
+
+            verticeNormals[4] = new Point3D((normals.Back.X + normals.Left.X + normals.Bottom.X) / 3,
+                                            (normals.Back.Y + normals.Left.Y + normals.Bottom.Y) / 3,
+                                            (normals.Back.Z + normals.Left.Z + normals.Bottom.Z) / 3);
+
+            verticeNormals[5] = new Point3D((normals.Back.X + normals.Left.X + normals.Top.X) / 3,
+                                            (normals.Back.Y + normals.Left.Y + normals.Top.Y) / 3,
+                                            (normals.Back.Z + normals.Left.Z + normals.Top.Z) / 3);
+
+            verticeNormals[6] = new Point3D((normals.Back.X + normals.Right.X + normals.Top.X) / 3,
+                                            (normals.Back.Y + normals.Right.Y + normals.Top.Y) / 3,
+                                            (normals.Back.Z + normals.Right.Z + normals.Top.Z) / 3);
+
+            verticeNormals[7] = new Point3D((normals.Back.X + normals.Right.X + normals.Bottom.X) / 3,
+                                            (normals.Back.Y + normals.Right.Y + normals.Bottom.Y) / 3,
+                                            (normals.Back.Z + normals.Right.Z + normals.Bottom.Z) / 3);
+            List<double> verticeIntences = new List<double>();
+            foreach(var v in verticeNormals)
+            {
+                verticeIntences.Add(GetVerticeIntence(camera, light, v));
+            }
+        }
+
+        public double GetVerticeIntence(Point3D camera, Point3D light, Point3D normal)
+        {
+            double Kd = 0.5, Ks = 0.5, Ka = 0.5;
+            int p = 3;
+            double Ia = 1, I = 1;
+            return Ia * Ka + I * (Ks * Math.Pow(CosA(light, camera, normal), p) + Kd * Math.Pow(CosQ(light, normal), p));
+        }
+
+        
 
 
     }
