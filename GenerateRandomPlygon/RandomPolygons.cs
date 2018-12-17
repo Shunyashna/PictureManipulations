@@ -77,8 +77,7 @@ namespace GenerateRandomPlygon
             Random random = new Random();
             Methods2D.FillPolygon(bitmap, angles);
             pictureBox1.Image = bitmap;
-
-            timer1.Stop();
+            
         }
 
         public Color GetRandomColor()

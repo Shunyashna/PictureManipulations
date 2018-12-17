@@ -1,4 +1,5 @@
 ﻿using CubeTransformations;
+using PictureManipulationsLibrary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,14 +23,15 @@ namespace CubeTransformations
             return normal;
         }
 
-        public static (Point3D front, Point3D back, Point3D top, Point3D bottom, Point3D right, Point3D left) CalculateNormals(Point3D[] cubePoints)
+        public static PolygonNormals CalculateNormals(Point3D[] cubePoints)
         {
-            var frontNormal = GetNormalVector(cubePoints[3], cubePoints[7], cubePoints[6]);
-            var backNormal = GetNormalVector(cubePoints[4], cubePoints[0], cubePoints[1]);
-            var topNormal = GetNormalVector(cubePoints[7], cubePoints[4], cubePoints[5]);
-            var bottomNormal = GetNormalVector(cubePoints[0], cubePoints[3], cubePoints[2]);
-            var rightNormal = GetNormalVector(cubePoints[0], cubePoints[4], cubePoints[7]);
-            var leftNormal = GetNormalVector(cubePoints[2], cubePoints[6], cubePoints[5]);
+            PolygonNormals normals = new PolygonNormals();
+            normals.Front = GetNormalVector(cubePoints[3], cubePoints[7], cubePoints[6]);
+            normals.Back = GetNormalVector(cubePoints[4], cubePoints[0], cubePoints[1]);
+            normals.Top = GetNormalVector(cubePoints[7], cubePoints[4], cubePoints[5]);
+            normals.Bottom = GetNormalVector(cubePoints[0], cubePoints[3], cubePoints[2]);
+            normals.Right = GetNormalVector(cubePoints[0], cubePoints[4], cubePoints[7]);
+            normals.Left = GetNormalVector(cubePoints[2], cubePoints[6], cubePoints[5]);
 
             /*Point3D[] normals = new Point3D[8];
 
@@ -65,7 +67,24 @@ namespace CubeTransformations
                                  (backNormal.Y + rightNormal.Y + bottomNormal.Y) / 3,
                                  (backNormal.Z + rightNormal.Z + bottomNormal.Z) / 3);
             return normals;*/
-            return (frontNormal, backNormal, topNormal, bottomNormal, rightNormal, leftNormal);
+            return normals;
         }
+
+        public double CosQ(Point3D light, Point3D normal)
+        {
+            var cosQ = (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) /
+                (Math.Sqrt(Math.Pow(normal.X,2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2)) *
+                Math.Sqrt(Math.Pow(light.X, 2) + Math.Pow(light.Y, 2) + Math.Pow(light.X, 2)));
+            return cosQ;
+        }
+
+        public double CosA(Point3D light, Point3D camera, Point3D normal)
+        {
+            var xR = (2 * normal.X * (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) / Math.Sqrt(Math.Pow(normal.X, 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2))) - light.X;
+            var yR = (2 * normal.Y * (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) / Math.Sqrt(Math.Pow(normal.X, 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2))) - light.Y;
+            var zR = (2 * normal.Z * (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) / Math.Sqrt(Math.Pow(normal.X, 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2))) - light.Z;
+        }
+
+
     }
 }

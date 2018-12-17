@@ -153,7 +153,7 @@ namespace CubeTransformations
 
             Color[] verticeColor = Methods2D.GetIntence(cubePoints, light);
 
-            DrawCubePolygons(tmpBmp, point2D, verticeColor, cubePoints);
+            DrawGuro(tmpBmp, point2D, verticeColor, cubePoints);
 
             /*//Back Face
             Methods2D.DrawLine(tmpBmp, point2D[0], point2D[1], verticeColor[0], verticeColor[1]);
@@ -199,32 +199,43 @@ namespace CubeTransformations
             return verts;
         }
 
-        public Bitmap DrawCubePolygons(Bitmap tmpBmp, PointF[] point2D, Color[] colors, Point3D[] cubePoints)
+        /*public Bitmap DrawPhong(Bitmap tmpBmp, PointF[] point2D, Color[] colors, Point3D[] cubePoints)
+        {
+            var normals = LightingLibrary.CalculateNormals(cubePoints);
+
+            const float4 diffColor = vec4(0.5, 0.0, 0.0, 1.0); //рассеянное освещение
+            const vec4 specColor = vec4(0.7, 0.7, 0.0, 1.0);
+            const float specPower = 30.0;
+
+            return tmpBmp;
+        }*/
+
+        public Bitmap DrawGuro(Bitmap tmpBmp, PointF[] point2D, Color[] colors, Point3D[] cubePoints)
         {
 
             var normals = LightingLibrary.CalculateNormals(cubePoints);
 
-                DrawWatchablePolygons(tmpBmp, normals.front,
+                DrawWatchablePolygons(tmpBmp, normals.Front,
                 new List<PointF> { point2D[3], point2D[7], point2D[6], point2D[2], point2D[3] },
                 new List<Color>() { colors[3], colors[7], colors[6], colors[2], colors[3] });
 
-                DrawWatchablePolygons(tmpBmp, normals.right,
+                DrawWatchablePolygons(tmpBmp, normals.Right,
                 new List<PointF> { point2D[0], point2D[4], point2D[7], point2D[3], point2D[0] },
                 new List<Color>() { colors[0], colors[4], colors[7], colors[3], colors[0] });
 
-                DrawWatchablePolygons(tmpBmp, normals.back,
+                DrawWatchablePolygons(tmpBmp, normals.Back,
                 new List<PointF> { point2D[1], point2D[5], point2D[4], point2D[0], point2D[1] },
                 new List<Color>() { colors[1], colors[5], colors[4], colors[0], colors[1] });
             
-                DrawWatchablePolygons(tmpBmp, normals.left,
+                DrawWatchablePolygons(tmpBmp, normals.Left,
                 new List<PointF> { point2D[2], point2D[6], point2D[5], point2D[1], point2D[2] },
                 new List<Color>() { colors[2], colors[6], colors[5], colors[1], colors[2] });
             
-                DrawWatchablePolygons(tmpBmp, normals.top,
+                DrawWatchablePolygons(tmpBmp, normals.Top,
                 new List<PointF> { point2D[7], point2D[4], point2D[5], point2D[6], point2D[7] },
                 new List<Color>() { colors[7], colors[4], colors[5], colors[6], colors[7] });
 
-                DrawWatchablePolygons(tmpBmp, normals.bottom,
+                DrawWatchablePolygons(tmpBmp, normals.Bottom,
                 new List<PointF> { point2D[0], point2D[3], point2D[2], point2D[1], point2D[0] },
                 new List<Color>() { colors[0], colors[3], colors[2], colors[1], colors[0] });
 
