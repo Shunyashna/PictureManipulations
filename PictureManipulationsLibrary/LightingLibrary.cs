@@ -37,16 +37,19 @@ namespace CubeTransformations
             return normals;
         }
 
-        public double CosQ(Point3D light, Point3D normal)
+        public static double CosQ(Point3D light, Point3D normal, Point3D vertice)
         {
+            //light = new Point3D(light.X - vertice.X, light.Y - vertice.Y, light.Z - vertice.Z);
             var cosQ = (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) /
                 (Math.Sqrt(Math.Pow(normal.X,2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2)) *
                 Math.Sqrt(Math.Pow(light.X, 2) + Math.Pow(light.Y, 2) + Math.Pow(light.X, 2)));
             return cosQ;
         }
 
-        public double CosA(Point3D light, Point3D camera, Point3D normal)
+        public static double CosA(Point3D light, Point3D camera, Point3D normal, Point3D vertice)
         {
+            //light = new Point3D(light.X - vertice.X, light.Y - vertice.Y, light.Z - vertice.Z);
+            //camera = new Point3D(camera.X - vertice.X, camera.Y - vertice.Y, camera.Z - vertice.Z);
             var xR = (2 * normal.X * (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) / Math.Sqrt(Math.Pow(normal.X, 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2))) - light.X;
             var yR = (2 * normal.Y * (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) / Math.Sqrt(Math.Pow(normal.X, 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2))) - light.Y;
             var zR = (2 * normal.Z * (normal.X * light.X + normal.Y * light.Y + normal.Z * light.Z) / Math.Sqrt(Math.Pow(normal.X, 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.X, 2))) - light.Z;
@@ -58,7 +61,7 @@ namespace CubeTransformations
             return cosA;
         }
 
-        public void GetIntense(Point3D[] cubePoints, Point3D camera, Point3D light)
+        public static List<double> GetIntense(Point3D[] cubePoints, Point3D camera, Point3D light)
         {
             var normals = CalculateNormals(cubePoints);
             Point3D[] verticeNormals = new Point3D[8];
@@ -94,19 +97,21 @@ namespace CubeTransformations
             verticeNormals[7] = new Point3D((normals.Back.X + normals.Right.X + normals.Bottom.X) / 3,
                                             (normals.Back.Y + normals.Right.Y + normals.Bottom.Y) / 3,
                                             (normals.Back.Z + normals.Right.Z + normals.Bottom.Z) / 3);
+
             List<double> verticeIntences = new List<double>();
-            foreach(var v in verticeNormals)
+            for(int i = 0; i < verticeNormals.Length; i++)
             {
-                verticeIntences.Add(GetVerticeIntence(camera, light, v));
+                verticeIntences.Add(GetVerticeIntence(camera, light, verticeNormals[i], cubePoints[i]));
             }
+            return verticeIntences;
         }
 
-        public double GetVerticeIntence(Point3D camera, Point3D light, Point3D normal)
+        public static double GetVerticeIntence(Point3D camera, Point3D light, Point3D normal, Point3D vertice)
         {
-            double Kd = 0.5, Ks = 0.5, Ka = 0.5;
+            double Kd = 0.7, Ks = 0.2, Ka = 0.4;
             int p = 3;
             double Ia = 1, I = 1;
-            return Ia * Ka + I * (Ks * Math.Pow(CosA(light, camera, normal), p) + Kd * Math.Pow(CosQ(light, normal), p));
+            return Ia * Ka + I * (Ks * Math.Pow(CosA(light, camera, normal, vertice), p) + Kd * CosQ(light, normal, vertice));
         }
 
         

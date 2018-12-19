@@ -151,7 +151,7 @@ namespace CubeTransformations
             tmpBmp.SetPixel(light2D.X, light2D.Y + 1, Color.OrangeRed);
             tmpBmp.SetPixel(light2D.X, light2D.Y - 1, Color.OrangeRed);
 
-            Color[] verticeColor = Methods2D.GetIntence(cubePoints, light);
+            Color[] verticeColor = /*Methods2D.GetIntence(cubePoints, light);*/ GetGuroColors(cubePoints, camera1.Position, light.Position, Color.Black);
 
             DrawGuro(tmpBmp, point2D, verticeColor, cubePoints);
 
@@ -209,6 +209,21 @@ namespace CubeTransformations
 
             return tmpBmp;
         }*/
+
+        public static Color[] GetGuroColors(Point3D[] cubePoints, Point3D camera, Point3D light, Color baseColor)
+        {
+            Color[] colors = new Color[8];
+            var intences = LightingLibrary.GetIntense(cubePoints, camera, light);
+            for (int i = 0; i < colors.Length; i++)
+            {
+                colors[i] = Color.FromArgb(Clip((int)(baseColor.R * intences[i])), Clip((int)(baseColor.G * intences[i])), Clip((int)(baseColor.B * intences[i])));
+            }
+            return colors;
+        }
+        private static int Clip(int num)
+        {
+            return num <= 0 ? 0 : (num >= 255 ? 255 : num);
+        }
 
         public Bitmap DrawGuro(Bitmap tmpBmp, PointF[] point2D, Color[] colors, Point3D[] cubePoints)
         {
