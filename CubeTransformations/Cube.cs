@@ -151,7 +151,9 @@ namespace CubeTransformations
             tmpBmp.SetPixel(light2D.X, light2D.Y + 1, Color.OrangeRed);
             tmpBmp.SetPixel(light2D.X, light2D.Y - 1, Color.OrangeRed);
 
-            Color[] verticeColor = /*Methods2D.GetIntence(cubePoints, light);*/ GetGuroColors(cubePoints, camera1.Position, light.Position, Color.Black);
+            Color[] verticeColor = Methods2D.GetIntence(cubePoints, light);
+                /*GetGuroColors(cubePoints, camera1.Position,
+                new Point3D(camera1.Position.X, camera1.Position.Y, camera1.Position.Z), Color.White);*/
 
             DrawGuro(tmpBmp, point2D, verticeColor, cubePoints);
 
@@ -231,28 +233,28 @@ namespace CubeTransformations
             var normals = LightingLibrary.CalculateNormals(cubePoints);
 
                 DrawWatchablePolygons(tmpBmp, normals.Front,
-                new List<PointF> { point2D[3], point2D[7], point2D[6], point2D[2], point2D[3] },
-                new List<Color>() { colors[3], colors[7], colors[6], colors[2], colors[3] });
-
-                DrawWatchablePolygons(tmpBmp, normals.Right,
-                new List<PointF> { point2D[0], point2D[4], point2D[7], point2D[3], point2D[0] },
-                new List<Color>() { colors[0], colors[4], colors[7], colors[3], colors[0] });
-
-                DrawWatchablePolygons(tmpBmp, normals.Back,
-                new List<PointF> { point2D[1], point2D[5], point2D[4], point2D[0], point2D[1] },
-                new List<Color>() { colors[1], colors[5], colors[4], colors[0], colors[1] });
-            
-                DrawWatchablePolygons(tmpBmp, normals.Left,
-                new List<PointF> { point2D[2], point2D[6], point2D[5], point2D[1], point2D[2] },
-                new List<Color>() { colors[2], colors[6], colors[5], colors[1], colors[2] });
-            
-                DrawWatchablePolygons(tmpBmp, normals.Top,
                 new List<PointF> { point2D[7], point2D[4], point2D[5], point2D[6], point2D[7] },
                 new List<Color>() { colors[7], colors[4], colors[5], colors[6], colors[7] });
 
-                DrawWatchablePolygons(tmpBmp, normals.Bottom,
+                DrawWatchablePolygons(tmpBmp, normals.Right,
+                new List<PointF> { point2D[3], point2D[7], point2D[6], point2D[2], point2D[3] },
+                new List<Color>() { colors[3], colors[7], colors[6], colors[2], colors[3] });
+
+                DrawWatchablePolygons(tmpBmp, normals.Back,
                 new List<PointF> { point2D[0], point2D[3], point2D[2], point2D[1], point2D[0] },
                 new List<Color>() { colors[0], colors[3], colors[2], colors[1], colors[0] });
+            
+                DrawWatchablePolygons(tmpBmp, normals.Left,
+                new List<PointF> { point2D[4], point2D[0], point2D[1], point2D[5], point2D[4] },
+                new List<Color>() { colors[4], colors[0], colors[1], colors[5], colors[4] });
+            
+                DrawWatchablePolygons(tmpBmp, normals.Top,
+                new List<PointF> { point2D[2], point2D[6], point2D[5], point2D[1], point2D[2] },
+                new List<Color>() { colors[2], colors[6], colors[5], colors[1], colors[2] });
+
+            DrawWatchablePolygons(tmpBmp, normals.Bottom,
+                new List<PointF> { point2D[0], point2D[4], point2D[7], point2D[3], point2D[0] },
+                new List<Color>() { colors[0], colors[4], colors[7], colors[3], colors[0] });
 
             return tmpBmp;
         }
@@ -270,6 +272,65 @@ namespace CubeTransformations
                 Methods2D.FillPolygon(tmpBmp, pixels);
             }
         }
-        
+
+        private Bitmap drawCube(Point point2D, Point3D[] cubePoints, int drawOrigin)
+        {
+            Bitmap resImage = new Bitmap(700, 700);
+
+            Point3D light = new Point3D(Height / 2, Height / 2 + 400, Height / 2 - 800);
+
+            Point light2D = new Point();
+            ParallelPointProection(light,ref light2D, new Point(drawOrigin, drawOrigin));
+
+            drawCubePolygons(resImage, point2D, light, cubePoints);
+            return resImage;
+        }
+
+        public static Bitmap drawCubePolygons(Bitmap srcImage, Point[] point2D, Point3D light, Point3D[] cubePoints)
+        {
+
+            Point3D[] normals = NormalUtils.calculateNormals(cubePoints);
+            Color[] colors = Utils.getIntence(cubePoints, normals, camera, light);
+
+            DrawWatchablePolygons(srcImage, normals[0],
+                    Arrays.asList(point2D[7], point2D[4], point2D[5], point2D[6], point2D[7]),
+                    Arrays.asList(colors[7], colors[4], colors[5], colors[6], colors[7]));
+
+            DrawWatchablePolygons(srcImage, normals[4],
+                    Arrays.asList(point2D[3], point2D[7], point2D[6], point2D[2], point2D[3]),
+                    Arrays.asList(colors[3], colors[7], colors[6], colors[2], colors[3]));
+
+            DrawWatchablePolygons(srcImage, normals[1],
+                    Arrays.asList(point2D[0], point2D[3], point2D[2], point2D[1], point2D[0]),
+                    Arrays.asList(colors[0], colors[3], colors[2], colors[1], colors[0]));
+
+            DrawWatchablePolygons(srcImage, normals[5],
+                    Arrays.asList(point2D[4], point2D[0], point2D[1], point2D[5], point2D[4]),
+                    Arrays.asList(colors[4], colors[0], colors[1], colors[5], colors[4]));
+
+            DrawWatchablePolygons(srcImage, normals[2],
+                    Arrays.asList(point2D[2], point2D[6], point2D[5], point2D[1], point2D[2]),
+                    Arrays.asList(colors[2], colors[6], colors[5], colors[1], colors[2]));
+
+            DrawWatchablePolygons(srcImage, normals[3],
+                    Arrays.asList(point2D[0], point2D[4], point2D[7], point2D[3], point2D[0]),
+                    Arrays.asList(colors[0], colors[4], colors[7], colors[3], colors[0]));
+            return srcImage;
+        }
+
+
+        public static void DrawWatchablePolygons(Bitmap srcImage, Point3D normal, List<Point> points, List<Color> colors)
+        {
+            double cos = normal.getZ() / Math.qrt(Math.Pow(normal., 2) + Math.Pow(normal.Y, 2) + Math.Pow(normal.Z, 2));
+            if (cos >= 0 && cos <= 1)
+            {
+                List<Point> pixels = new ArrayList<>();
+                for (int i = 0; i < points.size(); i++)
+                {
+                    pixels.add(new Point(points.get(i).getX(), points.get(i).getY(), colors.get(i)));
+                }
+                Utils.fillPolygon(srcImage, pixels);
+            }
+        }
     }
 }
